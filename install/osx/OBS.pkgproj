@@ -500,7 +500,7 @@
 				<key>PATH</key>
 				<string>SyphonInject.pkg</string>
 				<key>PATH_TYPE</key>
-				<integer>3</integer>
+				<integer>1</integer>
 			</dict>
 			<key>TYPE</key>
 			<integer>1</integer>
