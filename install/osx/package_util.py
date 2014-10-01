@@ -45,8 +45,11 @@ def gen_html(github_user, latest_tag):
     cmd("""sed -i '' 's/Times-Roman/Verdana/g' readme.rtf""")
 
 def prepare_pkg(project, package_id, latest_tag, jenkins_build):
-    tag_diff_cnt = cmd('git rev-list {0}..HEAD | wc -l'.format(latest_tag))
-    new_version = '{0}.{1}.{2}'.format(latest_tag, tag_diff_cnt, jenkins_build)
+    tag_diff = cmd('git rev-list {0}..HEAD'.format(latest_tag))
+    tag_diff_cnt = len(tag_diff)
+    new_version = latest_tag
+    if tag_diff_cnt:
+        new_version = '{0}.{1}.{2}'.format(new_version, str(tag_diff_cnt), jenkins_build)
     cmd('packagesutil --file "{0}" set package-1 identifier {0}'.format(project, package_id))
     cmd('packagesutil --file "{0}" set package-1 version {0}'.format(project, new_version))
 
