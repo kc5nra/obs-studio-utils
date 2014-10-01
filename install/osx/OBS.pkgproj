@@ -469,6 +469,15 @@
 				<key>VERSION</key>
 				<integer>2</integer>
 			</dict>
+			<key>PACKAGE_SCRIPTS</key>
+			<dict>
+				<key>POSTINSTALL_PATH</key>
+				<dict/>
+				<key>PREINSTALL_PATH</key>
+				<dict/>
+				<key>RESOURCES</key>
+				<array/>
+			</dict>
 			<key>PACKAGE_SETTINGS</key>
 			<dict>
 				<key>AUTHENTICATION</key>
@@ -476,7 +485,7 @@
 				<key>CONCLUSION_ACTION</key>
 				<integer>0</integer>
 				<key>IDENTIFIER</key>
-				<string>com.turrettech.pkg.OBS</string>
+				<string>com.obsproject.obs-studio</string>
 				<key>NAME</key>
 				<string>OBS</string>
 				<key>OVERWRITE_PERMISSIONS</key>
@@ -514,6 +523,17 @@
 		<dict>
 			<key>NOTES</key>
 			<data>
+			PCFET0NUWVBFIGh0bWwgUFVCTElDICItLy9XM0MvL0RURCBIVE1M
+			IDQuMDEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvVFIvaHRtbDQv
+			c3RyaWN0LmR0ZCI+CjxodG1sPgo8aGVhZD4KPG1ldGEgaHR0cC1l
+			cXVpdj0iQ29udGVudC1UeXBlIiBjb250ZW50PSJ0ZXh0L2h0bWw7
+			IGNoYXJzZXQ9VVRGLTgiPgo8bWV0YSBodHRwLWVxdWl2PSJDb250
+			ZW50LVN0eWxlLVR5cGUiIGNvbnRlbnQ9InRleHQvY3NzIj4KPHRp
+			dGxlPjwvdGl0bGU+CjxtZXRhIG5hbWU9IkdlbmVyYXRvciIgY29u
+			dGVudD0iQ29jb2EgSFRNTCBXcml0ZXIiPgo8bWV0YSBuYW1lPSJD
+			b2NvYVZlcnNpb24iIGNvbnRlbnQ9IjEyNjUuMjEiPgo8c3R5bGUg
+			dHlwZT0idGV4dC9jc3MiPgo8L3N0eWxlPgo8L2hlYWQ+Cjxib2R5
+			Pgo8L2JvZHk+CjwvaHRtbD4K
 			</data>
 		</dict>
 		<key>PROJECT_PRESENTATION</key>
@@ -521,7 +541,7 @@
 			<key>BACKGROUND</key>
 			<dict>
 				<key>ALIGNMENT</key>
-				<integer>7</integer>
+				<integer>4</integer>
 				<key>BACKGROUND_PATH</key>
 				<dict>
 					<key>PATH</key>
@@ -550,10 +570,12 @@
 									<key>HIDDEN</key>
 									<false/>
 									<key>STATE</key>
-									<integer>1</integer>
+									<integer>0</integer>
 								</dict>
 								<key>PACKAGE_UUID</key>
 								<string>19CCE3F2-8911-4364-B673-8B5BC3ABD4DA</string>
+								<key>REQUIREMENTS</key>
+								<array/>
 								<key>TITLE</key>
 								<array/>
 								<key>TOOLTIP</key>
@@ -575,6 +597,8 @@
 								</dict>
 								<key>PACKAGE_UUID</key>
 								<string>0CC9C67E-4D14-4794-9930-019925513B1C</string>
+								<key>REQUIREMENTS</key>
+								<array/>
 								<key>TITLE</key>
 								<array/>
 								<key>TOOLTIP</key>
@@ -592,7 +616,7 @@
 				<key>INSTALLATION TYPE</key>
 				<integer>0</integer>
 				<key>MODE</key>
-				<integer>1</integer>
+				<integer>0</integer>
 			</dict>
 			<key>INSTALLATION_STEPS</key>
 			<array>
@@ -683,6 +707,11 @@
 						</dict>
 					</dict>
 				</array>
+			</dict>
+			<key>SUMMARY</key>
+			<dict>
+				<key>LOCALIZATIONS</key>
+				<array/>
 			</dict>
 			<key>TITLE</key>
 			<dict>
