@@ -44,21 +44,21 @@ def gen_html(github_user, latest_tag):
     cmd('textutil -convert rtf readme.html -output readme.rtf')
     cmd("""sed -i '' 's/Times-Roman/Verdana/g' readme.rtf""")
 
-def prepare_pkg(project, package, latest_tag, jenkins_build):
+def prepare_pkg(project, package_id, latest_tag, jenkins_build):
     tag_diff_cnt = cmd('git rev-list {0}..HEAD | wc -l'.format(latest_tag))
     new_version = '{0}.{1}.{2}'.format(latest_tag, tag_diff_cnt, jenkins_build)
-    cmd('packagesutil --file "{0}" set package-1 identifier {0}'.format(project, package))
+    cmd('packagesutil --file "{0}" set package-1 identifier {0}'.format(project, package_id))
     cmd('packagesutil --file "{0}" set package-1 version {0}'.format(project, new_version))
 
 
 import argparse
 parser = argparse.ArgumentParser(description='obs-studio readme gen')
 parser.add_argument('-u', '--user', dest='user', default='jp9000')
-parser.add_argument('-p', '--package-id', dest='id', default='org.obsproject.pkg.obs-studio')
+parser.add_argument('-p', '--package-id', dest='package_id', default='org.obsproject.pkg.obs-studio')
 parser.add_argument('-f', '--project-file', dest='project', default='OBS.pkgproj')
 parser.add_argument('-j', '--jenkins-build', dest='jenkins_build', default='0')
 args = parser.parse_args()
 
 latest_tag = cmd('git describe --tags --abbrev=0')
 gen_html(args.user, latest_tag)
-prepare_pkg(args.package, latest_tag, args.jenkins_build)
+prepare_pkg(args.project, args.package_id, latest_tag, args.jenkins_build)
