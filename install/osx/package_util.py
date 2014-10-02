@@ -3,10 +3,19 @@ def cmd(cmd):
     import shlex
     return subprocess.check_output(shlex.split(cmd)).rstrip('\r\n')
 
-def gen_html(github_user, latest_tag):
-
+def get_tag(tag):
     rev = cmd('git rev-parse {0}'.format(latest_tag))
     anno = cmd('git cat-file -p {0}'.format(rev))
+    tag_info = []
+    for i, v in enumerate(anno.splitlines()):
+        if i <= 4:
+            continue
+
+    tag_info.append(l = v.lstrip())
+    return tag_info
+
+def gen_html(github_user, latest_tag):
+
     url = 'https://github.com/{0}/obs-studio/commit/%H'.format(github_user)
 
     with open('readme.html', 'w') as f:
@@ -19,12 +28,7 @@ def gen_html(github_user, latest_tag):
 
         ul = False
         f.write('<p>')
-        for i, v in enumerate(anno.splitlines()):
-            if i <= 4:
-                continue
-
-            import re
-            l = v.lstrip()
+        for l in get_tag(latest_tag)
             if not len(l):
                 continue
             if l.startswith('*'):
@@ -43,6 +47,20 @@ def gen_html(github_user, latest_tag):
 
     cmd('textutil -convert rtf readme.html -output readme.rtf')
     cmd("""sed -i '' 's/Times-Roman/Verdana/g' readme.rtf""")
+
+def save_manifest(latest_tag):
+    log = cmd('git log --pretty=oneline {0}...HEAD'.format(latest_tag))
+    manifest = {}
+    manifest['commits'] = []
+    for v in log.splitlines():
+        manifest['commits'].append(v)
+    manifest['tag'] = {
+        'name': latest_tag,
+        'description': get_tag(latest_tag)
+    }
+
+    import cPickle
+    cPickle.dump(manifest, 'manifest')
 
 def prepare_pkg(project, package_id, latest_tag, jenkins_build):
     tag_diff = cmd('git rev-list {0}..HEAD'.format(latest_tag))
@@ -65,3 +83,4 @@ args = parser.parse_args()
 latest_tag = cmd('git describe --tags --abbrev=0')
 gen_html(args.user, latest_tag)
 prepare_pkg(args.project, args.package_id, latest_tag, args.jenkins_build)
+save_manifest(args.user, latest_tag)
