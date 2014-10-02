@@ -3,15 +3,15 @@ def cmd(cmd):
     import shlex
     return subprocess.check_output(shlex.split(cmd)).rstrip('\r\n')
 
-def get_tag(tag):
+def get_tag_info(tag):
     rev = cmd('git rev-parse {0}'.format(latest_tag))
     anno = cmd('git cat-file -p {0}'.format(rev))
     tag_info = []
     for i, v in enumerate(anno.splitlines()):
         if i <= 4:
             continue
+        tag_info.append(v.lstrip())
 
-    tag_info.append(l = v.lstrip())
     return tag_info
 
 def gen_html(github_user, latest_tag):
@@ -28,7 +28,9 @@ def gen_html(github_user, latest_tag):
 
         ul = False
         f.write('<p>')
-        for l in get_tag(latest_tag)
+        import re
+
+        for l in get_tag_info(latest_tag):
             if not len(l):
                 continue
             if l.startswith('*'):
@@ -56,11 +58,12 @@ def save_manifest(latest_tag):
         manifest['commits'].append(v)
     manifest['tag'] = {
         'name': latest_tag,
-        'description': get_tag(latest_tag)
+        'description': get_tag_info(latest_tag)
     }
 
     import cPickle
-    cPickle.dump(manifest, 'manifest')
+    with open('manifest', 'w') as f:
+        cPickle.dump(manifest, f)
 
 def prepare_pkg(project, package_id, latest_tag, jenkins_build):
     tag_diff = cmd('git rev-list {0}..HEAD'.format(latest_tag))
@@ -83,4 +86,4 @@ args = parser.parse_args()
 latest_tag = cmd('git describe --tags --abbrev=0')
 gen_html(args.user, latest_tag)
 prepare_pkg(args.project, args.package_id, latest_tag, args.jenkins_build)
-save_manifest(args.user, latest_tag)
+save_manifest(latest_tag)
