@@ -1,6 +1,6 @@
 def cmd(cmd):
     import subprocess
-    import shlex
+
     return subprocess.check_output(shlex.split(cmd)).rstrip('\r\n')
 
 def get_tag_info(tag):
@@ -50,7 +50,7 @@ def gen_html(github_user, latest_tag):
     cmd('textutil -convert rtf readme.html -output readme.rtf')
     cmd("""sed -i '' 's/Times-Roman/Verdana/g' readme.rtf""")
 
-def save_manifest(latest_tag):
+def save_manifest(latest_tag, user):
     log = cmd('git log --pretty=oneline {0}...HEAD'.format(latest_tag))
     manifest = {}
     manifest['commits'] = []
@@ -60,7 +60,8 @@ def save_manifest(latest_tag):
         'name': latest_tag,
         'description': get_tag_info(latest_tag)
     }
-
+    manifest['version'] = cmd('git rev-list HEAD --count')
+    manifest['user'] = user
     import cPickle
     with open('manifest', 'w') as f:
         cPickle.dump(manifest, f)
@@ -76,7 +77,7 @@ def prepare_pkg(project, package_id, latest_tag, jenkins_build):
 
 
 import argparse
-parser = argparse.ArgumentParser(description='obs-studio readme gen')
+parser = argparse.ArgumentParser(description='obs-studio package util')
 parser.add_argument('-u', '--user', dest='user', default='jp9000')
 parser.add_argument('-p', '--package-id', dest='package_id', default='org.obsproject.pkg.obs-studio')
 parser.add_argument('-f', '--project-file', dest='project', default='OBS.pkgproj')
@@ -86,4 +87,4 @@ args = parser.parse_args()
 latest_tag = cmd('git describe --tags --abbrev=0')
 gen_html(args.user, latest_tag)
 prepare_pkg(args.project, args.package_id, latest_tag, args.jenkins_build)
-save_manifest(latest_tag)
+save_manifest(latest_tag, args.user)
