@@ -1,5 +1,11 @@
 from xml.etree import ElementTree as ET
 
+def qn_tag(t):
+    return {
+        'ce': str(ET.QName('http://catchexception.org/xml-namespaces/ce', t)),
+        'sparkle': str(ET.QName('http://www.andymatuschak.org/xml-namespaces/sparkle', t))
+    }[t]
+
 ET.register_namespace('sparkle', 'http://www.andymatuschak.org/xml-namespaces/sparkle')
 ET.register_namespace('ce', 'http://catchexception.org/xml-namespaces/ce')
 
@@ -106,10 +112,10 @@ def create_update(package, signature, manifest_file, channel):
     for item in feed_ele.findall('channel/item'):
         ET.dump(item)
         en_ele = item.find('enclosure')
-        v = int(en_ele.get('sparkle:version'))
+        v = int(en_ele.get(qn_tag('sparkle', 'version')))
         if v > max_version:
             max_version = v
-            sha1 = en_ele.get('ce:sha1')
+            sha1 = en_ele.get(qn_tag('ce', 'sha1'))
         elif v == max_version:
             # if we find the same version, delete as we may be fixing a bad update
             feed_ele.find('channel').remove(item)
