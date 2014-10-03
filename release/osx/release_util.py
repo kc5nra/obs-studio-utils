@@ -106,7 +106,7 @@ import argparse
 parser = argparse.ArgumentParser(description='obs-studio release util')
 parser.add_argument('-m', '--manifest', dest='manifest', default='manifest')
 parser.add_argument('-c', '--channel', dest='channel', default='test')
-parser.add_argument('-p', '--package', dest='package', default='OBS.mpkg')
+parser.add_argument('-p', '--package', dest='package', default='OBS.zip')
 parser.add_argument('-k', '--key', dest='key')
 args = parser.parse_args()
 
