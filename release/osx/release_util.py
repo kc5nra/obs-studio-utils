@@ -5,7 +5,7 @@ def qn_tag(n, t):
         'ce': str(ET.QName('http://catchexception.org/xml-namespaces/ce', t)),
         'sparkle': str(ET.QName('http://www.andymatuschak.org/xml-namespaces/sparkle', t))
     }[n]
-cd obs
+
 ET.register_namespace('sparkle', 'http://www.andymatuschak.org/xml-namespaces/sparkle')
 ET.register_namespace('ce', 'http://catchexception.org/xml-namespaces/ce')
 
