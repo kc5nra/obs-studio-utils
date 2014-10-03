@@ -3,6 +3,9 @@ from xml.etree import ElementTree as ET
 def create_link(rel_author, rel_channel):
     return 'https://builds.catchexception.org/obs-studio/{0}/{1}/updates.xml'.format(rel_author, rel_channel)
 
+def create_version(m):
+    return '{0}.{1}'.format(m['tag']['name'], len(m['commits']))
+
 def create_feed(rel_author, rel_channel):
     rss_el = ET.Element('rss', {
         'xmlns:sparkle': 'http://www.andymatuschak.org/xml-namespaces/sparkle',
@@ -65,7 +68,7 @@ def populate_item(item, package, signature, m, channel):
     from email.utils import formatdate
     import os
 
-    user_version = '{0}.{1}'.format(m['tag']['name'], len(m['commits']))
+    user_version = create_version(m)
     base_url = 'https://builds.catchexception.org/obs-studio/{0}/{1}'.format(m['user'], channel)
 
     title = 'OBS Studio {0} {1} by {2}'.format(user_version, channel, m['user'])
@@ -77,15 +80,24 @@ def populate_item(item, package, signature, m, channel):
     ET.SubElement(item, 'enclosure', {
         'url': '{0}/{1}.zip'.format(base_url, user_version),
         'sparkle:version': m['version'],
+        'sparkle:shortVersionString': user_version,
         'length': str(os.stat(package).st_size),
         'type': 'application/octet-stream',
-        'sparkle:dsaSignature': signature
+        'sparkle:dsaSignature': signature,
+        'ce:sha1': m['sha1']
     })
+
+def mkdir(dirname):
+    import os, errno
+    try:
+        os.makedirs(dirname)
+    except OSError, e:
+        if e.errno != errno.EEXIST:
+            raise
 
 def create_update(package, signature, manifest_file, channel):
     manifest = load_manifest(args.manifest)
     feed_ele = load_or_create_feed(manifest['user'], channel)
-    ET.dump(feed_ele)
     max_version = 0
     sha1 = None
     for item in feed_ele.findall('channel/item'):
@@ -101,7 +113,18 @@ def create_update(package, signature, manifest_file, channel):
 
     new_item = ET.SubElement(feed_ele.find('channel'), 'item')
     populate_item(new_item, package, signature, manifest, channel)
-    ET.dump(feed_ele)
+
+    from os import path
+
+    deploy_path = path.join('deploy', manifest['user'], channel)
+    mkdir(deploy_path)
+    with open(path.join(deploy_path, 'updates.xml'), 'w') as f:
+        f.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
+        ET.ElementTree(feed_ele).write(f, encoding='utf-8')
+
+    import shutil
+    shutil.copy(package, path.join(deploy_path, '{0}.zip'.format(create_version(manifest))))
+
 
 import argparse
 parser = argparse.ArgumentParser(description='obs-studio release util')

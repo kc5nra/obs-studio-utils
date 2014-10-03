@@ -62,6 +62,7 @@ def save_manifest(latest_tag, user):
     }
     manifest['version'] = cmd('git rev-list HEAD --count')
     manifest['user'] = user
+    manifest['sha1'] = cmd('git rev-parse HEAD')
     import cPickle
     with open('manifest', 'w') as f:
         cPickle.dump(manifest, f)
