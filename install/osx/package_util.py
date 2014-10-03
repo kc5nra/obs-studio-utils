@@ -50,7 +50,7 @@ def gen_html(github_user, latest_tag):
     cmd('textutil -convert rtf readme.html -output readme.rtf')
     cmd("""sed -i '' 's/Times-Roman/Verdana/g' readme.rtf""")
 
-def save_manifest(latest_tag, user):
+def save_manifest(latest_tag, user, jenkins_build):
     log = cmd('git log --pretty=oneline {0}...HEAD'.format(latest_tag))
     manifest = {}
     manifest['commits'] = []
@@ -63,6 +63,7 @@ def save_manifest(latest_tag, user):
     manifest['version'] = cmd('git rev-list HEAD --count')
     manifest['user'] = user
     manifest['sha1'] = cmd('git rev-parse HEAD')
+    manifest['jenkins_build'] = jenkins_build
     import cPickle
     with open('manifest', 'w') as f:
         cPickle.dump(manifest, f)
@@ -88,4 +89,4 @@ args = parser.parse_args()
 latest_tag = cmd('git describe --tags --abbrev=0')
 gen_html(args.user, latest_tag)
 prepare_pkg(args.project, args.package_id, latest_tag, args.jenkins_build)
-save_manifest(latest_tag, args.user)
+save_manifest(latest_tag, args.user, args.jenkins_build)

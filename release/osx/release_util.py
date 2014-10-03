@@ -88,7 +88,7 @@ def populate_item(item, package, signature, m, channel):
     ET.SubElement(item, 'pubDate').text = formatdate()
     ET.SubElement(item, 'enclosure', {
         'url': '{0}/{1}.zip'.format(base_url, user_version),
-        'sparkle:version': m['version'],
+        'sparkle:version': '{0}.{1}'.format(m['version'], m['jenkins_build']),
         'sparkle:shortVersionString': user_version,
         'length': str(os.stat(package).st_size),
         'type': 'application/octet-stream',
