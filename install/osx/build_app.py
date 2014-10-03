@@ -27,6 +27,12 @@ from shutil import copy, copytree, rmtree
 from os import makedirs, rename
 import plistlib
 
+import argparse
+parser = argparse.ArgumentParser(description='obs-studio package util')
+parser.add_argument('-d', '--base-dir', dest='dir', default='rundir/RelWithDebInfo')
+parser.add_argument('-b', '--build-number', dest='build_number', default='0')
+args = parser.parse_args()
+
 def cmd(cmd):
     import subprocess
     import shlex
@@ -38,7 +44,7 @@ inspect = list()
  
 inspected = set()
  
-build_path = argv[1]
+build_path = args.dir
 build_path = build_path.replace("\\ ", " ")
  
 def add(name, external=False, copy_as=None):
@@ -126,7 +132,7 @@ latest_tag = cmd('git describe --tags --abbrev=0')
 log = cmd('git log --pretty=oneline {0}...HEAD'.format(latest_tag))
 
 # set version
-info["CFBundleVersion"] = cmd("git rev-list HEAD --count")
+info["CFBundleVersion"] = "%s.%s"%(cmd("git rev-list HEAD --count"), args.build_number)
 info["CFBundleShortVersionString"] = "%s.%s"%(latest_tag, len(log.splitlines()))
  
 app_name = info["CFBundleName"]+".app"
@@ -137,7 +143,7 @@ copy(icon_path, icon_file)
 plistlib.writePlist(info, "tmp/Contents/Info.plist")
 makedirs("tmp/Contents/MacOS")
 copy(run_path, "tmp/Contents/MacOS/%s"%info["CFBundleExecutable"])
- 
+
 prefix = "tmp/Contents/Resources/"
  
 for path, external, copy_as in inspected:
