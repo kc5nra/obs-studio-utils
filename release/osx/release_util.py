@@ -38,16 +38,6 @@ def load_or_create_feed(rel_author, rel_channel):
 
     return feed
 
-def zip_dir(out, dir):
-    import os
-    import zipfile
-    zf = zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED)
-    for cd, sub, fs in os.walk(dir):
-        zf.write(cd)
-        for f in fs:
-            zf.write(os.path.join(cd, f))
-    zf.close()
-
 def sign_package(package, key):
     from shlex import split as shplit
     from subprocess import PIPE
@@ -120,7 +110,5 @@ parser.add_argument('-p', '--package', dest='package', default='OBS.mpkg')
 parser.add_argument('-k', '--key', dest='key')
 args = parser.parse_args()
 
-
-zip_dir('OBS.zip', args.package)
-sig = sign_package('OBS.zip', args.key)
-create_update('OBS.zip', sig, args.manifest, args.channel)
+sig = sign_package(args.package, args.key)
+create_update(args.package, sig, args.manifest, args.channel)
