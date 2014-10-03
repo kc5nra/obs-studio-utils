@@ -109,13 +109,13 @@ def create_update(package, signature, manifest_file, channel):
     feed_ele = load_or_create_feed(manifest['user'], channel)
 
     from distutils.version import StrictVersion
-    max_version = StrictVersion('0')
+    max_version = None
     sha1 = None
     for item in feed_ele.findall('channel/item'):
         ET.dump(item)
         en_ele = item.find('enclosure')
         v = StrictVersion(en_ele.get(qn_tag('sparkle', 'version')))
-        if v > max_version:
+        if max_version is None or v > max_version:
             max_version = v
             sha1 = en_ele.get(qn_tag('ce', 'sha1'))
         elif v == max_version:
