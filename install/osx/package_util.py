@@ -1,6 +1,6 @@
 def cmd(cmd):
     import subprocess
-
+    import shlex
     return subprocess.check_output(shlex.split(cmd)).rstrip('\r\n')
 
 def get_tag_info(tag):
