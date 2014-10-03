@@ -50,7 +50,7 @@ def gen_html(github_user, latest_tag):
     cmd('textutil -convert rtf readme.html -output readme.rtf')
     cmd("""sed -i '' 's/Times-Roman/Verdana/g' readme.rtf""")
 
-def save_manifest(latest_tag, user, jenkins_build):
+def save_manifest(latest_tag, user, jenkins_build, branch):
     log = cmd('git log --pretty=oneline {0}...HEAD'.format(latest_tag))
     manifest = {}
     manifest['commits'] = []
@@ -64,6 +64,7 @@ def save_manifest(latest_tag, user, jenkins_build):
     manifest['user'] = user
     manifest['sha1'] = cmd('git rev-parse HEAD')
     manifest['jenkins_build'] = jenkins_build
+    manifest['branch'] = branch
     import cPickle
     with open('manifest', 'w') as f:
         cPickle.dump(manifest, f)
@@ -84,9 +85,10 @@ parser.add_argument('-u', '--user', dest='user', default='jp9000')
 parser.add_argument('-p', '--package-id', dest='package_id', default='org.obsproject.pkg.obs-studio')
 parser.add_argument('-f', '--project-file', dest='project', default='OBS.pkgproj')
 parser.add_argument('-j', '--jenkins-build', dest='jenkins_build', default='0')
+parser.add_argument('-b', '--branch', dest='branch', default='master')
 args = parser.parse_args()
 
 latest_tag = cmd('git describe --tags --abbrev=0')
 gen_html(args.user, latest_tag)
 prepare_pkg(args.project, args.package_id, latest_tag, args.jenkins_build)
-save_manifest(latest_tag, args.user, args.jenkins_build)
+save_manifest(latest_tag, args.user, args.jenkins_build, args.branch)

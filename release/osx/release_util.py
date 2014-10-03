@@ -104,8 +104,11 @@ def mkdir(dirname):
         if e.errno != errno.EEXIST:
             raise
 
-def create_update(package, signature, manifest_file, channel):
+def create_update(package, signature, manifest_file):
     manifest = load_manifest(args.manifest)
+
+    channel = manifest['branch']
+
     feed_ele = load_or_create_feed(manifest['user'], channel)
 
     from distutils.version import StrictVersion
@@ -140,10 +143,9 @@ def create_update(package, signature, manifest_file, channel):
 import argparse
 parser = argparse.ArgumentParser(description='obs-studio release util')
 parser.add_argument('-m', '--manifest', dest='manifest', default='manifest')
-parser.add_argument('-c', '--channel', dest='channel', default='test')
 parser.add_argument('-p', '--package', dest='package', default='OBS.zip')
 parser.add_argument('-k', '--key', dest='key')
 args = parser.parse_args()
 
 sig = sign_package(args.package, args.key)
-create_update(args.package, sig, args.manifest, args.channel)
+create_update(args.package, sig, args.manifest)
