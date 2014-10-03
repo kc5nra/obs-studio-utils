@@ -109,7 +109,7 @@ def create_update(package, signature, manifest_file, channel):
     feed_ele = load_or_create_feed(manifest['user'], channel)
 
     from distutils.version import StrictVersion
-    max_version = StrictVersion(0)
+    max_version = StrictVersion('0')
     sha1 = None
     for item in feed_ele.findall('channel/item'):
         ET.dump(item)
