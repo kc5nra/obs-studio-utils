@@ -1,5 +1,8 @@
 from xml.etree import ElementTree as ET
 
+ET.register_namespace('sparkle', 'http://www.andymatuschak.org/xml-namespaces/sparkle')
+ET.register_namespace('ce', 'http://catchexception.org/xml-namespaces/ce')
+
 def create_link(rel_author, rel_channel):
     return 'https://builds.catchexception.org/obs-studio/{0}/{1}/updates.xml'.format(rel_author, rel_channel)
 
