@@ -48,12 +48,13 @@ def sign_package(package, key):
         p2 = subprocess.Popen(shplit('openssl dgst -dss1 -sign "{0}"'.format(key)), stdin=p1.stdout, stdout=PIPE)
         p3 = subprocess.Popen(shplit('openssl enc -base64'), stdin=p2.stdout, stdout=PIPE)
 
-        p1.poll(), p2.poll(), p3.poll()
+        sig = ''.join(p3.communicate()[0].splitlines())
 
+        p1.poll(), p2.poll(), p3.poll()
         if p1.returncode or p2.returncode or p3.returncode:
             raise RuntimeError
 
-        return ''.join(p3.communicate()[0].splitlines())
+        return sig
 
 def load_manifest(manifest_file):
     with open(manifest_file, 'r') as f:
