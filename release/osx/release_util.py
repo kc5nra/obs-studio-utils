@@ -13,7 +13,7 @@ def create_link(rel_author, rel_channel):
     return 'https://builds.catchexception.org/obs-studio/{0}/{1}/updates.xml'.format(rel_author, rel_channel)
 
 def create_version(m):
-    return '{0}.{1}'.format(m['tag']['name'], len(m['commits']))
+    return '{0}.{1}.{2}'.format(m['tag']['name'], len(m['commits']), m['jenkins_build'])
 
 def create_feed(rel_author, rel_channel):
     rss_el = ET.Element('rss', {
@@ -107,17 +107,19 @@ def mkdir(dirname):
 def create_update(package, signature, manifest_file, channel):
     manifest = load_manifest(args.manifest)
     feed_ele = load_or_create_feed(manifest['user'], channel)
-    max_version = 0
+
+    from distutils.version import StrictVersion
+    max_version = StrictVersion(0)
     sha1 = None
     for item in feed_ele.findall('channel/item'):
         ET.dump(item)
         en_ele = item.find('enclosure')
-        v = int(en_ele.get(qn_tag('sparkle', 'version')))
+        v = StrictVersion(en_ele.get(qn_tag('sparkle', 'version')))
         if v > max_version:
             max_version = v
             sha1 = en_ele.get(qn_tag('ce', 'sha1'))
         elif v == max_version:
-            # if we find the same version, delete as we may be fixing a bad update
+            # shouldn't happen, delete
             feed_ele.find('channel').remove(item)
 
     new_item = ET.SubElement(feed_ele.find('channel'), 'item')
