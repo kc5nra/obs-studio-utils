@@ -17,8 +17,8 @@ def create_version(m):
 
 def get_rss_attr():
     return {
-        qn_tag('xmlns', 'sparkle'): 'http://www.andymatuschak.org/xml-namespaces/sparkle',
-        qn_tag('xmlns', 'ce'): 'http://catchexception.org/xml-namespaces/ce',
+        'xmlns:sparkle': 'http://www.andymatuschak.org/xml-namespaces/sparkle',
+        'xmlns:ce': 'http://catchexception.org/xml-namespaces/ce',
         'version': '2.0'
     }
 
