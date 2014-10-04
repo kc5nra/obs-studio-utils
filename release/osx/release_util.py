@@ -119,12 +119,12 @@ def create_update(package, signature, manifest_file):
     for item in feed_ele.findall('channel/item'):
         en_ele = item.find('enclosure')
         v = StrictVersion(en_ele.get(qn_tag('sparkle', 'version')))
-        if max_version is None or v > max_version:
-            max_version = v
-            sha1 = en_ele.get(qn_tag('ce', 'sha1'))
-        elif v == my_version:
+        if v == my_version:
             # shouldn't happen, delete
             feed_ele.find('channel').remove(item)
+        elif max_version is None or v > max_version:
+            max_version = v
+            sha1 = en_ele.get(qn_tag('ce', 'sha1'))
 
     new_item = ET.SubElement(feed_ele.find('channel'), 'item')
     populate_item(new_item, package, signature, manifest, channel)
