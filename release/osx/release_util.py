@@ -112,16 +112,17 @@ def create_update(package, signature, manifest_file):
     feed_ele = load_or_create_feed(manifest['user'], channel)
 
     from distutils.version import StrictVersion
+
+    my_version = StrictVersion('{0}.{1}'.format(manifest['version'], manifest['jenkins_build']))
     max_version = None
     sha1 = None
     for item in feed_ele.findall('channel/item'):
-        ET.dump(item)
         en_ele = item.find('enclosure')
         v = StrictVersion(en_ele.get(qn_tag('sparkle', 'version')))
         if max_version is None or v > max_version:
             max_version = v
             sha1 = en_ele.get(qn_tag('ce', 'sha1'))
-        elif v == max_version:
+        elif v == my_version:
             # shouldn't happen, delete
             feed_ele.find('channel').remove(item)
 
