@@ -15,12 +15,16 @@ def create_link(rel_author, rel_channel):
 def create_version(m):
     return '{0}.{1}.{2}'.format(m['tag']['name'], len(m['commits']), m['jenkins_build'])
 
-def create_feed(rel_author, rel_channel):
-    rss_el = ET.Element('rss', {
+def get_rss_attr():
+    return {
         'xmlns:sparkle': 'http://www.andymatuschak.org/xml-namespaces/sparkle',
         'xmlns:ce': 'http://catchexception.org/xml-namespaces/ce',
         'version': '2.0'
-    })
+    }
+
+
+def create_feed(rel_author, rel_channel):
+    rss_el = ET.Element('rss', get_rss_attr())
 
     title = 'OBS Studio {0} channel by {1}'.format(rel_channel, rel_author)
     link = create_link(rel_author, rel_channel)
@@ -134,15 +138,8 @@ def create_update(package, signature, manifest_file):
     deploy_path = path.join('deploy', manifest['user'], channel)
     mkdir(deploy_path)
 
-    ET.dump(feed_ele)
-
-    # really?
-    import StringIO
-    o = StringIO.StringIO()
-    o.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
-    ET.ElementTree(feed_ele).write(o, encoding='utf-8')
-    feed_ele = ET.fromstring(o.getvalue())
-
+    feed_ele.attrib = get_rss_attr()
+    feed_ele = ET.fromstring(ET.tostring(feed_ele, encoding='utf-8'))
     with open(path.join(deploy_path, 'updates.xml'), 'w') as f:
         f.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
         ET.ElementTree(feed_ele).write(f, encoding='utf-8')
