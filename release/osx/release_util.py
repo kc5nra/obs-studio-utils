@@ -86,18 +86,15 @@ def populate_item(item, package, signature, m, channel):
     ET.SubElement(item, 'title').text = title
     ET.SubElement(item, 'sparkle:releaseNotesLink').text = notes_link
     ET.SubElement(item, 'pubDate').text = formatdate()
-
-    from collections import OrderedDict
-    d = OrderedDict([
-        ('length',                      str(os.stat(package).st_size)),
-        ('url',                         '{0}/{1}.zip'.format(base_url, user_version)),
-        ('type',                        'application/octet-stream'),
-        ('ce:sha1',                     m['sha1']),
-        ('sparkle:dsaSignature',        signature),
-        ('sparkle:shortVersionString',  user_version),
-        ('sparkle:version',             '{0}.{1}'.format(m['version'], m['jenkins_build']))
-    ])
-    ET.SubElement(item, 'enclosure', d)
+    ET.SubElement(item, 'enclosure', {
+        'length': str(os.stat(package).st_size),
+        'type': 'application/octet-stream',
+        'url': '{0}/{1}.zip'.format(base_url, user_version),
+        'ce:sha1': m['sha1'],
+        'sparkle:dsaSignature': signature,
+        'sparkle:shortVersionString': user_version,
+        'sparkle:version': '{0}.{1}'.format(m['version'], m['jenkins_build'])
+    })
 
 def mkdir(dirname):
     import os, errno
@@ -135,6 +132,8 @@ def create_update(package, signature, manifest_file):
 
     deploy_path = path.join('deploy', manifest['user'], channel)
     mkdir(deploy_path)
+
+    feed_ele = ET.fromstring(ET.tostring(feed_ele, encoding='utf-8'))
     with open(path.join(deploy_path, 'updates.xml'), 'w') as f:
         f.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
         ET.ElementTree(feed_ele).write(f, encoding='utf-8')
