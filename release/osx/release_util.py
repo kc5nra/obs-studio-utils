@@ -15,13 +15,12 @@ def create_link(rel_author, rel_channel):
 def create_version(m):
     return '{0}.{1}.{2}'.format(m['tag']['name'], len(m['commits']), m['jenkins_build'])
 
-def set_rss_attr(ele):
+def get_rss_attr():
     return {
         qn_tag('xmlns', 'sparkle'): 'http://www.andymatuschak.org/xml-namespaces/sparkle',
         qn_tag('xmlns', 'ce'): 'http://catchexception.org/xml-namespaces/ce',
         'version': '2.0'
     }
-
 
 def create_feed(rel_author, rel_channel):
     rss_el = ET.Element('rss', get_rss_attr())
