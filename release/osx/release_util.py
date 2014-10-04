@@ -15,10 +15,10 @@ def create_link(rel_author, rel_channel):
 def create_version(m):
     return '{0}.{1}.{2}'.format(m['tag']['name'], len(m['commits']), m['jenkins_build'])
 
-def get_rss_attr():
+def set_rss_attr(ele):
     return {
-        'xmlns:sparkle': 'http://www.andymatuschak.org/xml-namespaces/sparkle',
-        'xmlns:ce': 'http://catchexception.org/xml-namespaces/ce',
+        qn_tag('xmlns', 'sparkle'): 'http://www.andymatuschak.org/xml-namespaces/sparkle',
+        qn_tag('xmlns', 'ce'): 'http://catchexception.org/xml-namespaces/ce',
         'version': '2.0'
     }
 
@@ -94,10 +94,10 @@ def populate_item(item, package, signature, m, channel):
         'length': str(os.stat(package).st_size),
         'type': 'application/octet-stream',
         'url': '{0}/{1}.zip'.format(base_url, user_version),
-        'ce:sha1': m['sha1'],
-        'sparkle:dsaSignature': signature,
-        'sparkle:shortVersionString': user_version,
-        'sparkle:version': '{0}.{1}'.format(m['version'], m['jenkins_build'])
+        qn_tag('ce', 'sha1'): m['sha1'],
+        qn_tag('sparkle', 'dsaSignature'): signature,
+        qn_tag('sparkle', 'shortVersionString'): user_version,
+        qn_tag('sparkle', 'version'): '{0}.{1}'.format(m['version'], m['jenkins_build'])
     })
 
 def mkdir(dirname):
@@ -137,9 +137,6 @@ def create_update(package, signature, manifest_file):
 
     deploy_path = path.join('deploy', manifest['user'], channel)
     mkdir(deploy_path)
-
-    feed_ele.attrib.clear()
-    feed_ele.attrib = get_rss_attr()
 
     feed_ele = ET.fromstring(ET.tostring(feed_ele, encoding='utf-8'))
     with open(path.join(deploy_path, 'updates.xml'), 'w') as f:
