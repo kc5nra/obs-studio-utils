@@ -136,7 +136,13 @@ def create_update(package, signature, manifest_file):
 
     ET.dump(feed_ele)
 
-    feed_ele = ET.fromstring(ET.tostring(feed_ele, encoding='utf-8'))
+    # really?
+    import StringIO
+    o = StringIO.StringIO()
+    o.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
+    ET.ElementTree(feed_ele).write(o, encoding='utf-8')
+    feed_ele = ET.fromstring(o.getvalue())
+
     with open(path.join(deploy_path, 'updates.xml'), 'w') as f:
         f.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
         ET.ElementTree(feed_ele).write(f, encoding='utf-8')
