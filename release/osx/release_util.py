@@ -181,10 +181,6 @@ def create_update(package, signature, manifest_file):
     import StringIO
     out = StringIO.StringIO()
 
-    # debugging
-
-    max_sha1 = '59f2a6ac5a6911a9c3300ce432cc269cb8e18b1c'
-
     if len(manifest['commits']):
         write_changes_html(out, manifest['user'], manifest['commits'], max_version, max_sha1)
     else:
