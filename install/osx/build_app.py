@@ -152,7 +152,6 @@ copy(run_path, "tmp/Contents/MacOS/%s"%info["CFBundleExecutable"])
 copy(args.public_key, "tmp/Contents/Resources")
 
 if args.sparkle is not None:
-    makedirs('tmp/Contents/Frameworks')
     copytree(args.sparkle, "tmp/Contents/Frameworks")
 
 prefix = "tmp/Contents/Resources/"
