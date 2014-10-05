@@ -1,5 +1,21 @@
 from xml.etree import ElementTree as ET
 
+def CDATA(text=None):
+    element = ET.Element('![CDATA[')
+    element.text = text
+    return element
+
+ET._original_serialize_xml = ET._serialize_xml
+
+def _serialize_xml(write, elem, encoding, qnames, namespaces):
+    if elem.tag == '![CDATA[':
+        write("\n<%s%s]]>\n" % (
+                elem.tag, elem.text))
+        return
+    return ET._original_serialize_xml(
+        write, elem, encoding, qnames, namespaces)
+ET._serialize_xml = ET._serialize['xml'] = _serialize_xml
+
 def qn_tag(n, t):
     return {
         'ce': str(ET.QName('http://catchexception.org/xml-namespaces/ce', t)),
@@ -69,7 +85,7 @@ def load_manifest(manifest_file):
         import cPickle
         return cPickle.load(f)
 
-def populate_item(item, package, signature, m, channel):
+def populate_item(item, package, signature, m, channel, desc):
     from email.utils import formatdate
     import os
 
@@ -77,10 +93,9 @@ def populate_item(item, package, signature, m, channel):
     base_url = 'https://builds.catchexception.org/obs-studio/{0}/{1}'.format(m['user'], channel)
 
     title = 'OBS Studio {0} {1} by {2}'.format(user_version, channel, m['user'])
-    notes_link = '{0}/{1}-notes.html'.format(base_url, user_version)
 
     ET.SubElement(item, 'title').text = title
-    ET.SubElement(item, 'sparkle:releaseNotesLink').text = notes_link
+    ET.SubElement(item, 'description').append(CDATA(desc))
     ET.SubElement(item, 'pubDate').text = formatdate()
     ET.SubElement(item, 'enclosure', {
         'length': str(os.stat(package).st_size),
@@ -100,6 +115,46 @@ def mkdir(dirname):
         if e.errno != errno.EEXIST:
             raise
 
+def write_tag_html(f, name, desc):
+
+    ul = False
+    for l in desc:
+        if not len(l):
+            continue
+        if l.startswith('*'):
+            ul = True
+            if not ul:
+                f.write('<ul>')
+
+            import re
+            f.write('<li>&bull; {0}</li>'.format(re.sub(r'^(\s*)?[*](\s*)?', '', l)))
+        else:
+            ul = False
+            if ul:
+                f.write('</ul>')
+            f.write('<p>{0}</p>'.format(l))
+    if ul:
+        f.write('</ul>')
+
+def write_changes_html(f, user, commits, max_version, max_sha1):
+
+    url = 'https://github.com/{0}/obs-studio/commit/{0}'
+
+    change_fmt = '<li><a style="text-decoration:none" href="{0}">(view)</a> {1}</li>'
+    change_cnt = 0
+    for v in commits:
+        sha1 = v[:40]
+        message = v[41:]
+        if sha1 == max_sha1:
+            break
+
+        change_cnt += 1
+
+        f.write(change_fmt.format(url.format(user, sha1), message))
+
+    if not change_cnt:
+        f.write('<p>No changes</p>')
+
 def create_update(package, signature, manifest_file):
     manifest = load_manifest(args.manifest)
 
@@ -111,7 +166,7 @@ def create_update(package, signature, manifest_file):
 
     my_version = StrictVersion('{0}.{1}'.format(manifest['version'], manifest['jenkins_build']))
     max_version = None
-    sha1 = None
+    max_sha1 = None
     for item in feed_ele.findall('channel/item'):
         en_ele = item.find('enclosure')
         v = StrictVersion(en_ele.get(qn_tag('sparkle', 'version')))
@@ -120,20 +175,38 @@ def create_update(package, signature, manifest_file):
             feed_ele.find('channel').remove(item)
         elif max_version is None or v > max_version:
             max_version = v
-            sha1 = en_ele.get(qn_tag('ce', 'sha1'))
+            max_sha1 = en_ele.get(qn_tag('ce', 'sha1'))
+
+
+    import StringIO
+    out = StringIO.StringIO()
+
+    # debugging
+
+    max_sha1 = '59f2a6ac5a6911a9c3300ce432cc269cb8e18b1c'
+
+    if len(manifest['commits']):
+        write_changes_html(out, manifest['user'], manifest['commits'], max_version, max_sha1)
+    else:
+        # this is a tag release
+        write_tag_html(out, manifest['tag']['name'], manifest['tag']['description'])
+
+    with open('out.html', 'w') as f:
+        f.write(out.getvalue())
 
     new_item = ET.SubElement(feed_ele.find('channel'), 'item')
-    populate_item(new_item, package, signature, manifest, channel)
+    populate_item(new_item, package, signature, manifest, channel, out.getvalue())
 
     from os import path
 
     deploy_path = path.join('deploy', manifest['user'], channel)
     mkdir(deploy_path)
 
-    feed_ele = ET.fromstring(ET.tostring(feed_ele, encoding='utf-8'))
+    feed_ele = ET.fromstring(ET.tostring(feed_ele, encoding='utf-8', method='xml'))
+    ET.dump(feed_ele)
     with open(path.join(deploy_path, 'updates.xml'), 'w') as f:
         f.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
-        ET.ElementTree(feed_ele).write(f, encoding='utf-8')
+        ET.ElementTree(feed_ele).write(f, encoding='utf-8', method='xml')
 
     import shutil
     shutil.copy(package, path.join(deploy_path, '{0}.zip'.format(create_version(manifest))))
