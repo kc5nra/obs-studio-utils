@@ -127,7 +127,7 @@ def write_tag_html(f, name, desc):
                 f.write('<ul>')
 
             import re
-            f.write('<li>&bull; {0}</li>'.format(re.sub(r'^(\s*)?[*](\s*)?', '', l)))
+            f.write('<li>{0}</li>'.format(re.sub(r'^(\s*)?[*](\s*)?', '', l)))
         else:
             ul = False
             if ul:
@@ -138,7 +138,7 @@ def write_tag_html(f, name, desc):
 
 def write_changes_html(f, user, commits, max_version, max_sha1):
 
-    url = 'https://github.com/{0}/obs-studio/commit/{0}'
+    url = 'https://github.com/{0}/obs-studio/commit/{1}'
 
     change_fmt = '<li><a style="text-decoration:none" href="{0}">(view)</a> {1}</li>'
     change_cnt = 0
