@@ -31,6 +31,7 @@ import argparse
 parser = argparse.ArgumentParser(description='obs-studio package util')
 parser.add_argument('-d', '--base-dir', dest='dir', default='rundir/RelWithDebInfo')
 parser.add_argument('-b', '--build-number', dest='build_number', default='0')
+parser.add_argument('-k', '--public-key', dest='public_key', default='OBSPublicDSAKey.pem')
 args = parser.parse_args()
 
 def cmd(cmd):
@@ -131,19 +132,23 @@ info = plistlib.readPlist(plist_path)
 latest_tag = cmd('git describe --tags --abbrev=0')
 log = cmd('git log --pretty=oneline {0}...HEAD'.format(latest_tag))
 
+
+from os import path
 # set version
 info["CFBundleVersion"] = "%s.%s"%(cmd("git rev-list HEAD --count"), args.build_number)
 info["CFBundleShortVersionString"] = "%s.%s"%(latest_tag, len(log.splitlines()))
- 
+info["SUPublicDSAKeyFile"] = path.basename(args.public_key)
+
 app_name = info["CFBundleName"]+".app"
 icon_file = "tmp/Contents/Resources/%s"%info["CFBundleIconFile"]
+
  
 copytree(build_path, "tmp/Contents/Resources/", symlinks=True)
 copy(icon_path, icon_file)
 plistlib.writePlist(info, "tmp/Contents/Info.plist")
 makedirs("tmp/Contents/MacOS")
 copy(run_path, "tmp/Contents/MacOS/%s"%info["CFBundleExecutable"])
-
+copy(args.public_key, "tmp/Contents/Resources")
 prefix = "tmp/Contents/Resources/"
  
 for path, external, copy_as in inspected:
