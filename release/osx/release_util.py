@@ -85,7 +85,7 @@ def load_manifest(manifest_file):
         import cPickle
         return cPickle.load(f)
 
-def populate_item(item, package, signature, m, channel, desc):
+def populate_item(item, package, signature, m, channel):
     from email.utils import formatdate
     import os
 
@@ -95,8 +95,9 @@ def populate_item(item, package, signature, m, channel, desc):
     title = 'OBS Studio {0} {1} by {2}'.format(user_version, channel, m['user'])
 
     ET.SubElement(item, 'title').text = title
-    ET.SubElement(item, 'description').append(CDATA(desc))
+    ET.SubElement(item, qn_tag('sparkle', 'releaseNotesLink')).text = '{0}/notes.html'.format(base_url)
     ET.SubElement(item, 'pubDate').text = formatdate()
+
     ET.SubElement(item, 'enclosure', {
         'length': str(os.stat(package).st_size),
         'type': 'application/octet-stream',
@@ -136,21 +137,51 @@ def write_tag_html(f, name, desc):
     if ul:
         f.write('</ul>')
 
-def write_changes_html(f, user, commits, max_version, max_sha1):
+def write_notes_html(f, manifest, versions):
+    # make oldest to newest
+    commits = manifest['commits'][::-1]
 
-    url = 'https://github.com/{0}/obs-studio/commit/{1}'
+    # oldest to newest
+    prev_ver = 0
+    for i, v in enumerate(versions):
+        v['commits'] = []
+        found = False
+        for c in commits[prev_ver:]:
+            sha1 = c[:40]
+            desc = c[41:]
+            if v['sha1'] == sha1:
+                prev_ver = i
+                found = True
 
-    change_fmt = '<li><a style="text-decoration:none" href="{0}">(view)</a> {1}</li>'
-    change_cnt = 0
-    for v in commits:
-        sha1 = v[:40]
-        message = v[41:]
-        if sha1 == max_sha1:
-            break
+            v['commits'].append({
+                'sha1': sha1,
+                'desc': desc
+            })
 
-        change_cnt += 1
+            if found:
+                break
 
-        f.write(change_fmt.format(url.format(user, sha1), message))
+    f.write('<div id="0">')
+    f.write('<h3>Release notes for version {0}</h3>'.format(manifest['tag']['name']))
+    f.write('<p>')
+    write_tag_html(f, manifest['tag']['name'], manifest['tag']['description'])
+    f.write('</p>')
+    f.write('</div>')
+    for v in versions:
+        f.write('<div id="{0}">'.format(v['internal_version']))
+        f.write('<h3>Release notes for version {0}</h3>'.format(v['user_version']))
+        f.write('<p>')
+        if len(v['commits']):
+            url = 'https://github.com/{0}/obs-studio/commit/{1}'
+            change_fmt = '<li><a href="{0}">(view)</a> {1}</li>'
+            f.write('<ul>')
+            for c in v['commits']:
+                f.write(change_fmt.format(url.format(manifest['user'], c['sha1']), c['desc']))
+            f.write('</ul>')
+        f.write('</p>')
+        f.write('</div>')
+
+
 
 def create_update(package, signature, manifest_file):
     manifest = load_manifest(args.manifest)
@@ -162,33 +193,33 @@ def create_update(package, signature, manifest_file):
     from distutils.version import StrictVersion
 
     my_version = StrictVersion('{0}.{1}'.format(manifest['version'], manifest['jenkins_build']))
-    max_version = None
-    max_sha1 = None
+
+    versions = []
+
     for item in feed_ele.findall('channel/item'):
         en_ele = item.find('enclosure')
-        v = StrictVersion(en_ele.get(qn_tag('sparkle', 'version')))
-        if v == my_version:
+        internal_version = StrictVersion(en_ele.get(qn_tag('sparkle', 'version')))
+        user_version = en_ele.get(qn_tag('sparkle', 'shortVersionString'))
+        sha1 = en_ele.get(qn_tag('ce', 'sha1'))
+
+        if internal_version == my_version:
             # shouldn't happen, delete
             feed_ele.find('channel').remove(item)
-        elif max_version is None or v > max_version:
-            max_version = v
-            max_sha1 = en_ele.get(qn_tag('ce', 'sha1'))
+            continue
 
+        versions.append({
+            'internal_version': internal_version,
+            'user_version': user_version,
+            'sha1': sha1
+        })
 
     import StringIO
-    out = StringIO.StringIO()
+    notes = StringIO.StringIO()
 
-    if len(manifest['commits']):
-        write_changes_html(out, manifest['user'], manifest['commits'], max_version, max_sha1)
-    else:
-        # this is a tag release
-        write_tag_html(out, manifest['tag']['name'], manifest['tag']['description'])
-
-    with open('out.html', 'w') as f:
-        f.write(out.getvalue())
+    write_notes_html(notes, manifest, versions)
 
     new_item = ET.SubElement(feed_ele.find('channel'), 'item')
-    populate_item(new_item, package, signature, manifest, channel, out.getvalue())
+    populate_item(new_item, package, signature, manifest, channel)
 
     from os import path
 
@@ -196,10 +227,13 @@ def create_update(package, signature, manifest_file):
     mkdir(deploy_path)
 
     feed_ele = ET.fromstring(ET.tostring(feed_ele, encoding='utf-8', method='xml'))
-    ET.dump(feed_ele)
+
     with open(path.join(deploy_path, 'updates.xml'), 'w') as f:
         f.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
         ET.ElementTree(feed_ele).write(f, encoding='utf-8', method='xml')
+
+    with open(path.join(deploy_path, 'notes.html'), 'w') as f:
+        f.write(notes.getvalue())
 
     import shutil
     shutil.copy(package, path.join(deploy_path, '{0}.zip'.format(create_version(manifest))))

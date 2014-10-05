@@ -32,6 +32,7 @@ parser = argparse.ArgumentParser(description='obs-studio package util')
 parser.add_argument('-d', '--base-dir', dest='dir', default='rundir/RelWithDebInfo')
 parser.add_argument('-b', '--build-number', dest='build_number', default='0')
 parser.add_argument('-k', '--public-key', dest='public_key', default='OBSPublicDSAKey.pem')
+parser.add_argument('-s', '--sparkle-framework', dest='sparkle', default=None)
 args = parser.parse_args()
 
 def cmd(cmd):
@@ -149,6 +150,10 @@ plistlib.writePlist(info, "tmp/Contents/Info.plist")
 makedirs("tmp/Contents/MacOS")
 copy(run_path, "tmp/Contents/MacOS/%s"%info["CFBundleExecutable"])
 copy(args.public_key, "tmp/Contents/Resources")
+
+if args.sparkle is not None:
+    copytree(args.sparkle, "tmp/Contents/Frameworks")
+
 prefix = "tmp/Contents/Resources/"
  
 for path, external, copy_as in inspected:
