@@ -152,9 +152,6 @@ def write_changes_html(f, user, commits, max_version, max_sha1):
 
         f.write(change_fmt.format(url.format(user, sha1), message))
 
-    if not change_cnt:
-        f.write('<p>No changes</p>')
-
 def create_update(package, signature, manifest_file):
     manifest = load_manifest(args.manifest)
 
