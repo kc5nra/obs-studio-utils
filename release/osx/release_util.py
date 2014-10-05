@@ -15,15 +15,8 @@ def create_link(rel_author, rel_channel):
 def create_version(m):
     return '{0}.{1}.{2}'.format(m['tag']['name'], len(m['commits']), m['jenkins_build'])
 
-def get_rss_attr():
-    return {
-        'xmlns:sparkle': 'http://www.andymatuschak.org/xml-namespaces/sparkle',
-        'xmlns:ce': 'http://catchexception.org/xml-namespaces/ce',
-        'version': '2.0'
-    }
-
 def create_feed(rel_author, rel_channel):
-    rss_el = ET.Element('rss', get_rss_attr())
+    rss_el = ET.Element('rss')
 
     title = 'OBS Studio {0} channel by {1}'.format(rel_channel, rel_author)
     link = create_link(rel_author, rel_channel)
