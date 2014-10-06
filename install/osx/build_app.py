@@ -30,9 +30,12 @@ import plistlib
 import argparse
 parser = argparse.ArgumentParser(description='obs-studio package util')
 parser.add_argument('-d', '--base-dir', dest='dir', default='rundir/RelWithDebInfo')
-parser.add_argument('-b', '--build-number', dest='build_number', default='0')
+parser.add_argument('-n', '--build-number', dest='build_number', default='0')
 parser.add_argument('-k', '--public-key', dest='public_key', default='OBSPublicDSAKey.pem')
 parser.add_argument('-s', '--sparkle-framework', dest='sparkle', default=None)
+parser.add_argument('-b', '--base-url', dest='base_url', default='https://builds.catchexception.org/obs-studio')
+parser.add_argument('-u', '--user', dest='user', default='jp9000')
+parser.add_argument('-c', '--channel', dest='channel', default='master')
 args = parser.parse_args()
 
 def cmd(cmd):
@@ -117,7 +120,7 @@ while inspect:
 			if blacklisted:
 				continue
 		add(new, True)
- 
+
 changes = list()
 for path, external, copy_as in inspected:
 	if not external:
@@ -139,11 +142,12 @@ from os import path
 info["CFBundleVersion"] = "%s.%s"%(cmd("git rev-list HEAD --count"), args.build_number)
 info["CFBundleShortVersionString"] = "%s.%s"%(latest_tag, len(log.splitlines()))
 info["SUPublicDSAKeyFile"] = path.basename(args.public_key)
+info["SUFeedURL"] = '{0}/{1}/{2}/updates.xml'.format(args.base_url, args.user, args.channel)
+info["OBSFeedsURL"] = '{0}/feeds.xml'.format(args.base_url)
 
 app_name = info["CFBundleName"]+".app"
 icon_file = "tmp/Contents/Resources/%s"%info["CFBundleIconFile"]
 
- 
 copytree(build_path, "tmp/Contents/Resources/", symlinks=True)
 copy(icon_path, icon_file)
 plistlib.writePlist(info, "tmp/Contents/Info.plist")
@@ -152,10 +156,16 @@ copy(run_path, "tmp/Contents/MacOS/%s"%info["CFBundleExecutable"])
 copy(args.public_key, "tmp/Contents/Resources")
 
 if args.sparkle is not None:
-    copytree(args.sparkle, "tmp/Contents/Frameworks")
+    copytree(args.sparkle, "tmp/Contents/Frameworks/Sparkle.framework")
 
 prefix = "tmp/Contents/Resources/"
- 
+sparkle_path = '@loader_path/{0}/Frameworks/Sparkle.framework/Versions/A/Sparkle'
+
+cmd('install_name_tool -change {0} {1} {2}/bin/obs'.format(
+    sparkle_path.format('..'), sparkle_path.format('../..'), prefix))
+
+
+
 for path, external, copy_as in inspected:
 	id_ = ""
 	filename = path
@@ -179,7 +189,7 @@ for path, external, copy_as in inspected:
 	cmd = "install_name_tool %s %s %s '%s'"%(changes, id_, rpath, filename)
 	#print(repr(cmd))
 	call(cmd, shell=True)
- 
+
 try:
 	rename("tmp", app_name)
 except:
