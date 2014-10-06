@@ -142,13 +142,17 @@ def write_notes_html(f, manifest, versions):
     commits = manifest['commits'][::-1]
 
     # oldest to newest
-    prev_ver = 0
+    seen_sha1 = {}
     for v in versions:
         v['commits'] = []
+        if v['sha1'] in seen_sha1:
+            continue
+        seen_sha1[v['sha1']] = True
         found = False
         for i,c in enumerate(commits):
             sha1 = c[:40]
             desc = c[41:]
+
             if v['sha1'] == sha1:
                 if i + 1 < len(commits):
                     commits = commits[i+1:]
