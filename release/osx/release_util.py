@@ -139,19 +139,23 @@ def write_tag_html(f, name, desc):
 
 def write_notes_html(f, manifest, versions):
     # make oldest to newest
-    commits = manifest['commits'][::-1]
+    commits = [dict(sha1 = c[:40], desc = c[41:]) for c in manifest['commits'][::-1]]
+    known_commits = set(c['sha1'] for c in commits)
 
     # oldest to newest
-    seen_sha1 = {}
+    seen_sha1 = set()
     for v in versions:
         v['commits'] = []
+        v['removed_from_history'] = v['sha1'] not in known_commits
         if v['sha1'] in seen_sha1:
             continue
-        seen_sha1[v['sha1']] = True
+        seen_sha1.add(v['sha1'])
+        if v['removed_from_history']:
+            continue
         found = False
         for i,c in enumerate(commits):
-            sha1 = c[:40]
-            desc = c[41:]
+            sha1 = c['sha1']
+            desc = c['desc']
 
             if v['sha1'] == sha1:
                 if i + 1 < len(commits):
@@ -160,10 +164,7 @@ def write_notes_html(f, manifest, versions):
                     commits = []
                 found = True
 
-            v['commits'].append({
-                'sha1': sha1,
-                'desc': desc
-            })
+            v['commits'].append(c)
 
             if found:
                 break
@@ -189,8 +190,9 @@ def write_notes_html(f, manifest, versions):
     f.write('<h2>Release notes for version {0}</h2>'.format(manifest['tag']['name']))
     write_tag_html(f, manifest['tag']['name'], manifest['tag']['description'])
     for v in versions:
-        caption = '<h3 id="caption{0}"><a href="#caption{0}" onclick="return toggle(\'{0}\')"> Release notes for version {1}</a></h3>'
-        caption = caption.format(v['internal_version'], v['user_version'])
+        extra_style = ' style="text-decoration:line-through"' if v['removed_from_history'] else ""
+        caption = '<h3 id="caption{0}"{2}><a href="#caption{0}" onclick="return toggle(\'{0}\')"> Release notes for version {1}</a></h3>'
+        caption = caption.format(v['internal_version'], v['user_version'], extra_style)
         f.write(caption)
         if len(v['commits']):
             url = 'https://github.com/{0}/obs-studio/commit/{1}'
@@ -228,7 +230,6 @@ def create_update(package, signature, manifest_file):
         if internal_version == my_version:
             # shouldn't happen, delete
             feed_ele.find('channel').remove(item)
-            continue
 
         versions.append({
             'internal_version': internal_version,
