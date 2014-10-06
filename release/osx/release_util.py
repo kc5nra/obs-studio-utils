@@ -146,21 +146,23 @@ def write_notes_html(f, manifest, versions):
     for v in versions:
         v['commits'] = []
         found = False
-        if prev_ver < len(commits):
-            for i,c in enumerate(commits[prev_ver:]):
-                sha1 = c[:40]
-                desc = c[41:]
-                if v['sha1'] == sha1:
-                    prev_ver = i + 1
-                    found = True
+        for i,c in enumerate(commits):
+            sha1 = c[:40]
+            desc = c[41:]
+            if v['sha1'] == sha1:
+                if i + 1 < len(commits):
+                    commits = commits[i+1:]
+                else:
+                    commits = []
+                found = True
 
-                v['commits'].append({
-                    'sha1': sha1,
-                    'desc': desc
-                })
+            v['commits'].append({
+                'sha1': sha1,
+                'desc': desc
+            })
 
-                if found:
-                    break
+            if found:
+                break
 
     f.write('<div id="0">')
     f.write('<h3>Release notes for version {0}</h3>'.format(manifest['tag']['name']))
