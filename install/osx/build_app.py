@@ -139,7 +139,7 @@ log = cmd('git log --pretty=oneline {0}...HEAD'.format(latest_tag))
 
 from os import path
 # set version
-info["CFBundleVersion"] = "%s.%s"%(cmd("git rev-list HEAD --count"), args.build_number)
+info["CFBundleVersion"] = args.build_number
 info["CFBundleShortVersionString"] = "%s.%s"%(latest_tag, len(log.splitlines()))
 info["SUPublicDSAKeyFile"] = path.basename(args.public_key)
 info["SUFeedURL"] = '{0}/{1}/{2}/updates.xml'.format(args.base_url, args.user, args.channel)

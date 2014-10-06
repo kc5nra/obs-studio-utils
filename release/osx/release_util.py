@@ -29,7 +29,7 @@ def create_link(rel_author, rel_channel, filename):
     return 'https://builds.catchexception.org/obs-studio/{0}/{1}/{2}'.format(rel_author, rel_channel, filename)
 
 def create_version(m):
-    return '{0}.{1}.{2}'.format(m['tag']['name'], len(m['commits']), m['jenkins_build'])
+    return '{0}.{1}'.format(m['tag']['name'], m['jenkins_build'])
 
 def create_feed(rel_author, rel_channel):
     rss_el = ET.Element('rss')
@@ -117,7 +117,7 @@ def populate_item(item, package, signature, m, channel):
         qn_tag('ce', 'sha1'): m['sha1'],
         qn_tag('sparkle', 'dsaSignature'): signature,
         qn_tag('sparkle', 'shortVersionString'): user_version,
-        qn_tag('sparkle', 'version'): '{0}.{1}'.format(m['version'], m['jenkins_build'])
+        qn_tag('sparkle', 'version'): '{0}'.format(m['jenkins_build'])
     })
 
 def mkdir(dirname):
