@@ -97,23 +97,27 @@ def load_manifest(manifest_file):
         import cPickle
         return cPickle.load(f)
 
-def populate_item(item, package, signature, m, channel):
+def populate_item(item, package, key, m, channel, package_type):
     from email.utils import formatdate
     import os
+
+    package_path = '{0}-{1}.zip'.format(package, package_type)
+    signature = sign_package(package_path, key)
 
     user_version = create_version(m)
     base_url = 'https://builds.catchexception.org/obs-studio/{0}/{1}'.format(m['user'], channel)
 
-    title = 'OBS Studio {0} {1} by {2}'.format(user_version, channel, m['user'])
+    title = 'OBS Studio {0} {1} by {2} ({3})'.format(user_version, channel, m['user'], package_type)
 
     ET.SubElement(item, 'title').text = title
     ET.SubElement(item, qn_tag('sparkle', 'releaseNotesLink')).text = '{0}/notes.html'.format(base_url)
     ET.SubElement(item, 'pubDate').text = formatdate()
+    ET.SubElement(item, qn_tag('ce', 'packageType')).text = package_type
 
     ET.SubElement(item, 'enclosure', {
-        'length': str(os.stat(package).st_size),
+        'length': str(os.stat(package_path).st_size),
         'type': 'application/octet-stream',
-        'url': '{0}/{1}.zip'.format(base_url, user_version),
+        'url': '{0}/{1}-{2}.zip'.format(base_url, user_version, package_type),
         qn_tag('ce', 'sha1'): m['sha1'],
         qn_tag('sparkle', 'dsaSignature'): signature,
         qn_tag('sparkle', 'shortVersionString'): user_version,
@@ -219,8 +223,8 @@ def write_notes_html(f, manifest, versions, history):
 
 
 
-def create_update(package, signature, manifest_file):
-    manifest = load_manifest(args.manifest)
+def create_update(package, key, manifest_file):
+    manifest = load_manifest(manifest_file)
 
     channel = manifest['branch']
 
@@ -261,8 +265,12 @@ def create_update(package, signature, manifest_file):
 
     write_notes_html(notes, manifest, versions, history)
 
+
     new_item = ET.SubElement(feed_ele.find('channel'), 'item')
-    populate_item(new_item, package, signature, manifest, channel)
+    populate_item(new_item, package, key, manifest, channel, 'mpkg')
+
+    new_item = ET.SubElement(feed_ele.find('channel'), 'item')
+    populate_item(new_item, package, key, manifest, channel, 'app')
 
     from os import path
 
@@ -283,15 +291,15 @@ def create_update(package, signature, manifest_file):
         cPickle.dump(history, f)
 
     import shutil
-    shutil.copy(package, path.join(deploy_path, '{0}.zip'.format(create_version(manifest))))
+    shutil.copy('{0}-mpkg.zip'.format(package), path.join(deploy_path, '{0}-mpkg.zip'.format(create_version(manifest))))
+    shutil.copy('{0}-app.zip'.format(package), path.join(deploy_path, '{0}-app.zip'.format(create_version(manifest))))
 
 
 import argparse
 parser = argparse.ArgumentParser(description='obs-studio release util')
 parser.add_argument('-m', '--manifest', dest='manifest', default='manifest')
-parser.add_argument('-p', '--package', dest='package', default='OBS.zip')
+parser.add_argument('-p', '--package', dest='package', default='OBS')
 parser.add_argument('-k', '--key', dest='key')
 args = parser.parse_args()
 
-sig = sign_package(args.package, args.key)
-create_update(args.package, sig, args.manifest)
+create_update(args.package, args.key, args.manifest)
