@@ -227,15 +227,15 @@ def create_update(package, signature, manifest_file):
     feed_ele = load_or_create_feed(manifest['user'], channel)
     history  = load_or_create_history(manifest['user'], channel)
 
-    from distutils.version import StrictVersion
+    from distutils.version import LooseVersion
 
-    my_version = StrictVersion('{0}.{1}'.format(manifest['version'], manifest['jenkins_build']))
+    my_version = LooseVersion('{0}.{1}'.format(manifest['version'], manifest['jenkins_build']))
 
     versions = []
 
     for item in feed_ele.findall('channel/item'):
         en_ele = item.find('enclosure')
-        internal_version = StrictVersion(en_ele.get(qn_tag('sparkle', 'version')))
+        internal_version = LooseVersion(en_ele.get(qn_tag('sparkle', 'version')))
         user_version = en_ele.get(qn_tag('sparkle', 'shortVersionString'))
         sha1 = en_ele.get(qn_tag('ce', 'sha1'))
 
