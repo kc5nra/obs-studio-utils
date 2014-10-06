@@ -25,8 +25,8 @@ def qn_tag(n, t):
 ET.register_namespace('sparkle', 'http://www.andymatuschak.org/xml-namespaces/sparkle')
 ET.register_namespace('ce', 'http://catchexception.org/xml-namespaces/ce')
 
-def create_link(rel_author, rel_channel):
-    return 'https://builds.catchexception.org/obs-studio/{0}/{1}/updates.xml'.format(rel_author, rel_channel)
+def create_link(rel_author, rel_channel, filename):
+    return 'https://builds.catchexception.org/obs-studio/{0}/{1}/{2}'.format(rel_author, rel_channel, filename)
 
 def create_version(m):
     return '{0}.{1}.{2}'.format(m['tag']['name'], len(m['commits']), m['jenkins_build'])
@@ -35,7 +35,7 @@ def create_feed(rel_author, rel_channel):
     rss_el = ET.Element('rss')
 
     title = 'OBS Studio {0} channel by {1}'.format(rel_channel, rel_author)
-    link = create_link(rel_author, rel_channel)
+    link = create_link(rel_author, rel_channel, "updates.xml")
     description = 'OBS Studio update channel'
 
     channel_el = ET.SubElement(rss_el, 'channel')
@@ -46,7 +46,7 @@ def create_feed(rel_author, rel_channel):
     return rss_el
 
 def load_or_create_feed(rel_author, rel_channel):
-    link = create_link(rel_author, rel_channel)
+    link = create_link(rel_author, rel_channel, "updates.xml")
     import urllib2
 
     feed = create_feed(rel_author, rel_channel)
@@ -61,6 +61,18 @@ def load_or_create_feed(rel_author, rel_channel):
         raise
 
     return feed
+
+def load_or_create_history(rel_author, rel_channel):
+    link = create_link(rel_author, rel_channel, "history")
+    import urllib2, cPickle
+
+    try:
+        resp = urllib2.urlopen(link)
+        return cPickle.loads(resp.read())
+    except urllib2.HTTPError, e:
+        if e.code != 404:
+            raise
+        return dict()
 
 def sign_package(package, key):
     from shlex import split as shplit
@@ -137,10 +149,14 @@ def write_tag_html(f, name, desc):
     if ul:
         f.write('</ul>')
 
-def write_notes_html(f, manifest, versions):
+def write_notes_html(f, manifest, versions, history):
     # make oldest to newest
     commits = [dict(sha1 = c[:40], desc = c[41:]) for c in manifest['commits'][::-1]]
     known_commits = set(c['sha1'] for c in commits)
+
+    history[manifest['sha1']] = commits
+
+    assigned_commits = set()
 
     # oldest to newest
     seen_sha1 = set()
@@ -150,24 +166,17 @@ def write_notes_html(f, manifest, versions):
         if v['sha1'] in seen_sha1:
             continue
         seen_sha1.add(v['sha1'])
-        if v['removed_from_history']:
+        if v['removed_from_history'] and not v['sha1'] in history:
             continue
-        found = False
-        for i,c in enumerate(commits):
-            sha1 = c['sha1']
-            desc = c['desc']
+        for commit in history[v['sha1']]:
+            if commit['sha1'] in assigned_commits:
+                continue
 
-            if v['sha1'] == sha1:
-                if i + 1 < len(commits):
-                    commits = commits[i+1:]
-                else:
-                    commits = []
-                found = True
-
-            v['commits'].append(c)
-
-            if found:
-                break
+            known = commit['sha1'] in known_commits
+            v['commits'].append(dict(commit))
+            v['commits'][-1]['known'] = known
+            if known:
+                assigned_commits.add(commit['sha1'])
 
     f.write('''
             <!DOCTYPE html>
@@ -190,16 +199,18 @@ def write_notes_html(f, manifest, versions):
     f.write('<h2>Release notes for version {0}</h2>'.format(manifest['tag']['name']))
     write_tag_html(f, manifest['tag']['name'], manifest['tag']['description'])
     for v in versions:
-        extra_style = ' style="text-decoration:line-through"' if v['removed_from_history'] else ""
+        strike_through = ' style="text-decoration:line-through"'
+        extra_style = strike_through if v['removed_from_history'] else ""
         caption = '<h3 id="caption{0}"{2}><a href="#caption{0}" onclick="return toggle(\'{0}\')"> Release notes for version {1}</a></h3>'
         caption = caption.format(v['internal_version'], v['user_version'], extra_style)
         f.write(caption)
         if len(v['commits']):
             url = 'https://github.com/{0}/obs-studio/commit/{1}'
-            change_fmt = '<li><a href="{0}">(view)</a> {1}</li>'
+            change_fmt = '<li{2}><a href="{0}">(view)</a> {1}</li>'
             f.write('<ul id="changes{0}">'.format(v['internal_version']))
             for c in v['commits']:
-                f.write(change_fmt.format(url.format(manifest['user'], c['sha1']), c['desc']))
+                extra_style = strike_through if not c['known'] else ""
+                f.write(change_fmt.format(url.format(manifest['user'], c['sha1']), c['desc'], extra_style))
             f.write('</ul>')
     f.write('''
             </body>
@@ -214,6 +225,7 @@ def create_update(package, signature, manifest_file):
     channel = manifest['branch']
 
     feed_ele = load_or_create_feed(manifest['user'], channel)
+    history  = load_or_create_history(manifest['user'], channel)
 
     from distutils.version import StrictVersion
 
@@ -240,7 +252,7 @@ def create_update(package, signature, manifest_file):
     import StringIO
     notes = StringIO.StringIO()
 
-    write_notes_html(notes, manifest, versions)
+    write_notes_html(notes, manifest, versions, history)
 
     new_item = ET.SubElement(feed_ele.find('channel'), 'item')
     populate_item(new_item, package, signature, manifest, channel)
@@ -258,6 +270,10 @@ def create_update(package, signature, manifest_file):
 
     with open(path.join(deploy_path, 'notes.html'), 'w') as f:
         f.write(notes.getvalue())
+
+    with open(path.join(deploy_path, 'history'), 'w') as f:
+        import cPickle
+        cPickle.dump(history, f)
 
     import shutil
     shutil.copy(package, path.join(deploy_path, '{0}.zip'.format(create_version(manifest))))
