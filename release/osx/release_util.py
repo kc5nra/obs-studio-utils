@@ -233,7 +233,7 @@ def create_update(package, key, manifest_file):
 
     from distutils.version import LooseVersion
 
-    my_version = LooseVersion('{0}.{1}'.format(manifest['version'], manifest['jenkins_build']))
+    my_version = LooseVersion('{0}'.format(manifest['jenkins_build']))
 
     versions = []
 
