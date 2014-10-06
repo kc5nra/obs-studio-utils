@@ -168,25 +168,41 @@ def write_notes_html(f, manifest, versions):
             if found:
                 break
 
-    f.write('<div id="0">')
-    f.write('<h3>Release notes for version {0}</h3>'.format(manifest['tag']['name']))
-    f.write('<p>')
+    f.write('''
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Release notes for version {0}</title>
+                <meta charset="utf-8">
+                <script>
+                    function toggle(version)
+                    {{
+                        changes = document.getElementById("changes" + version);
+                        if (changes != null)
+                            changes.style.display = changes.style.display == "none" ? "block" : "none";
+                        return false;
+                    }}
+                </script>
+            </head>
+            <body>
+            '''.format(manifest['tag']['name']))
+    f.write('<h2>Release notes for version {0}</h2>'.format(manifest['tag']['name']))
     write_tag_html(f, manifest['tag']['name'], manifest['tag']['description'])
-    f.write('</p>')
-    f.write('</div>')
     for v in versions:
-        f.write('<div id="{0}">'.format(v['internal_version']))
-        f.write('<h3>Release notes for version {0}</h3>'.format(v['user_version']))
-        f.write('<p>')
+        caption = '<h3 id="caption{0}"><a href="#caption{0}" onclick="return toggle(\'{0}\')"> Release notes for version {1}</a></h3>'
+        caption = caption.format(v['internal_version'], v['user_version'])
+        f.write(caption)
         if len(v['commits']):
             url = 'https://github.com/{0}/obs-studio/commit/{1}'
             change_fmt = '<li><a href="{0}">(view)</a> {1}</li>'
-            f.write('<ul>')
+            f.write('<ul id="changes{0}">'.format(v['internal_version']))
             for c in v['commits']:
                 f.write(change_fmt.format(url.format(manifest['user'], c['sha1']), c['desc']))
             f.write('</ul>')
-        f.write('</p>')
-        f.write('</div>')
+    f.write('''
+            </body>
+            </html>
+            ''')
 
 
 
