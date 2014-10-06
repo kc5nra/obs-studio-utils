@@ -242,12 +242,19 @@ def create_update(package, signature, manifest_file):
         if internal_version == my_version:
             # shouldn't happen, delete
             feed_ele.find('channel').remove(item)
+            continue
 
         versions.append({
             'internal_version': internal_version,
             'user_version': user_version,
             'sha1': sha1
         })
+
+    versions.append(dict(
+        internal_version = my_version,
+        user_version     = create_version(manifest),
+        sha1             = manifest['sha1']
+    ))
 
     import StringIO
     notes = StringIO.StringIO()
