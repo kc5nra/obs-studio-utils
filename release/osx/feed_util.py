@@ -9,19 +9,15 @@ parser.add_argument('-d', '--directory', dest='dir', default='.')
 parser.add_argument('-u', '--base-url', dest='base_url', default='https://builds.catchexception.org/obs-studio')
 args = parser.parse_args()
 
+r = {}
+import fnmatch
 
-users = get_sub(args.dir)
-root = {}
-for u in users:
-    channels = get_sub(os.path.join(args.dir, u))
-    root[u] = {}
-    for c in channels:
-        root[u][c] = {
-            'name': '''{0}'s {1} channel'''.format(u, c),
-            'feed': '{0}/{1}/{2}/updates.xml'.format(args.base_url, u, c)
-        }
+for d in get_sub('.'):
+    for root, dirs, files in os.walk(d):
+      for f in fnmatch.filter(files, 'updates.xml'):
+            c = os.path.dirname(os.path.join(root, f))
+            r[c] = '{0}/{1}/updates.xml'.format(args.base_url, c)
 
 import json
 with open(os.path.join(args.dir, 'feeds.json'), 'w') as f:
-    json.dump(root, f, sort_keys=True, indent=4, separators=(',', ': '))
-
+    json.dump(r, f, sort_keys=True, indent=4, separators=(',', ': '))
