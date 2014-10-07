@@ -270,6 +270,8 @@ def create_update(package, key, manifest_file):
 
     versions = []
 
+    seen_versions = set()
+
     for item in feed_ele.findall('channel/item'):
         en_ele = item.find('enclosure')
         internal_version = LooseVersion(en_ele.get(qn_tag('sparkle', 'version')))
@@ -280,6 +282,10 @@ def create_update(package, key, manifest_file):
             # shouldn't happen, delete
             feed_ele.find('channel').remove(item)
             continue
+
+        if str(internal_version) in seen_versions:
+            continue
+        seen_versions.add(str(internal_version))
 
         versions.append({
             'internal_version': internal_version,
