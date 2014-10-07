@@ -189,6 +189,7 @@ def write_notes_html(f, manifest, versions, history):
                 <title>Release notes for version {0}</title>
                 <meta charset="utf-8">
                 <script>
+                    var versions = ["{1}"];
                     function toggle(version)
                     {{
                         var changes = document.getElementById("changes" + version);
@@ -202,6 +203,9 @@ def write_notes_html(f, manifest, versions, history):
 
                     function toggle_lower(version)
                     {{
+                        if (versions.indexOf(version) == -1)
+                            return;
+
                         var version_found = false;
                         var captions = document.getElementsByTagName("h3");
                         for (var i = 0; i < captions.length; i++) {{
@@ -235,7 +239,7 @@ def write_notes_html(f, manifest, versions, history):
                 </style>
             </head>
             <body>
-            '''.format(manifest['tag']['name']))
+            '''.format(manifest['tag']['name'], '", "'.join(str(v['internal_version']) for v in versions)))
     f.write('<h2>Release notes for version {0}</h2>'.format(manifest['tag']['name']))
     write_tag_html(f, manifest['tag']['name'], manifest['tag']['description'])
     for v in versions:
