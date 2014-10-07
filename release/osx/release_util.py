@@ -213,13 +213,13 @@ def write_notes_html(f, manifest, versions, history):
                             if (!parts || parts.length != 2)
                                 continue;
 
-                            if (parts[1] == version)
-                                version_found = true;
-
                             if (!version_found) {{
                                 captions[i].className += " old";
                                 toggle(parts[1]);
                             }}
+
+                            if (parts[1] == version)
+                                version_found = true;
                         }}
                     }}
                 </script>
