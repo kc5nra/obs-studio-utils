@@ -82,8 +82,9 @@ def add_plugins(path, replace):
 		if "_debug" in img:
 			continue
 		add(img, True, img.split("plugins/")[-1])
- 
- 
+
+actual_sparkle_path = '@loader_path/Frameworks/Sparkle.framework/Versions/A/Sparkle'
+
 while inspect:
 	target = inspect.pop()
 	print("inspecting", repr(target))
@@ -105,6 +106,9 @@ while inspect:
  
 	for line in out.split("\n")[1:]:
 		new = line.strip().split(" (")[0]
+		if '@' in new and "sparkle.framework" in new.lower():
+			actual_sparkle_path = new
+			print "Using sparkle path:", repr(actual_sparkle_path)
 		if not new or new[0] == "@" or new.endswith(path.split("/")[-1]):
 			continue
 		whitelisted = False
@@ -162,7 +166,7 @@ prefix = "tmp/Contents/Resources/"
 sparkle_path = '@loader_path/{0}/Frameworks/Sparkle.framework/Versions/A/Sparkle'
 
 cmd('install_name_tool -change {0} {1} {2}/bin/obs'.format(
-    sparkle_path.format('..'), sparkle_path.format('../..'), prefix))
+    actual_sparkle_path, sparkle_path.format('../..'), prefix))
 
 
 
