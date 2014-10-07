@@ -202,15 +202,20 @@ def write_notes_html(f, manifest, versions, history):
 
                     function toggle_lower(version)
                     {{
+                        var version_found = false;
                         var captions = document.getElementsByTagName("h3");
                         for (var i = 0; i < captions.length; i++) {{
                             var parts = captions[i].id.split("caption");
                             if (!parts || parts.length != 2)
                                 continue;
 
-                            var num = parseInt(parts[1]);
-                            if (num < version)
-                                toggle(num);
+                            if (parts[1] == version)
+                                version_found = true;
+
+                            if (!version_found) {{
+                                captions[i].className += " old";
+                                toggle(parts[1]);
+                            }}
                         }}
                     }}
                 </script>
@@ -222,6 +227,10 @@ def write_notes_html(f, manifest, versions, history):
                     h3 a
                     {{
                         font-family: monospace;
+                    }}
+                    h3.old
+                    {{
+                        color: gray;
                     }}
                 </style>
             </head>
@@ -248,7 +257,7 @@ def write_notes_html(f, manifest, versions, history):
                 <script>
                     parts = window.location.href.toString().split("#");
                     if (parts.length == 2 && parts[1].search(/^\d+$/) == 0)
-                        toggle_lower(parseInt(parts[1]));
+                        toggle_lower(parts[1]);
                 </script>
             </body>
             </html>
