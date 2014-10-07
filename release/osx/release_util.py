@@ -213,12 +213,16 @@ def write_notes_html(f, manifest, versions, history):
                             if (!parts || parts.length != 2)
                                 continue;
 
+                            var rebased = captions[i].className.search(/rebased/) != -1;
+                            var current_version = parts[1] == version;
+
                             if (!version_found) {{
                                 captions[i].className += " old";
-                                toggle(parts[1]);
+                                if (!current_version || (current_version && !rebased))
+                                    toggle(parts[1]);
                             }}
 
-                            if (parts[1] == version)
+                            if (current_version)
                                 version_found = true;
                         }}
                     }}
@@ -236,6 +240,10 @@ def write_notes_html(f, manifest, versions, history):
                     {{
                         color: gray;
                     }}
+                    .removed
+                    {{
+                        text-decoration: line-through;
+                    }}
                 </style>
             </head>
             <body>
@@ -243,8 +251,8 @@ def write_notes_html(f, manifest, versions, history):
     f.write('<h2>Release notes for version {0}</h2>'.format(manifest['tag']['name']))
     write_tag_html(f, manifest['tag']['name'], manifest['tag']['description'])
     for v in versions:
-        strike_through = ' style="text-decoration:line-through"'
-        extra_style = strike_through if v['removed_from_history'] else ""
+        removed_class = ' class="removed"'
+        extra_style = removed_class if v['removed_from_history'] else ""
         expand_link = ' <a id="toggle{0}" href="#caption{0}" onclick="return toggle(\'{0}\')">[-]</a>'.format(v['internal_version']) if v['commits'] else ""
         caption = '<h3 id="caption{0}"{2}>Release notes for version {1}{3}</h3>'
         caption = caption.format(v['internal_version'], v['user_version'], extra_style, expand_link)
@@ -254,7 +262,7 @@ def write_notes_html(f, manifest, versions, history):
             change_fmt = '<li{2}><a href="{0}">(view)</a> {1}</li>'
             f.write('<ul id="changes{0}">'.format(v['internal_version']))
             for c in v['commits']:
-                extra_style = strike_through if not c['known'] else ""
+                extra_style = removed_class if not c['known'] else ""
                 f.write(change_fmt.format(url.format(manifest['user'], c['sha1']), c['desc'], extra_style))
             f.write('</ul>')
     f.write('''
