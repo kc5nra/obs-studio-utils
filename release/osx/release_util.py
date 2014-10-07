@@ -25,17 +25,23 @@ def qn_tag(n, t):
 ET.register_namespace('sparkle', 'http://www.andymatuschak.org/xml-namespaces/sparkle')
 ET.register_namespace('ce', 'http://catchexception.org/xml-namespaces/ce')
 
-def create_link(rel_author, rel_channel, filename):
-    return 'https://builds.catchexception.org/obs-studio/{0}/{1}/{2}'.format(rel_author, rel_channel, filename)
+def create_channel(m):
+    if m['stable']:
+        return 'stable'
+    else:
+        return '{0}/{1}'.format(m['user'], m['branch'])
+
+def create_link(rel_channel, filename):
+    return 'https://builds.catchexception.org/obs-studio/{0}/{1}'.format(rel_channel, filename)
 
 def create_version(m):
     return '{0}.{1}'.format(m['tag']['name'], m['jenkins_build'])
 
-def create_feed(rel_author, rel_channel):
+def create_feed(rel_channel):
     rss_el = ET.Element('rss')
 
-    title = 'OBS Studio {0} channel by {1}'.format(rel_channel, rel_author)
-    link = create_link(rel_author, rel_channel, "updates.xml")
+    title = 'OBS Studio {0} channel'.format(rel_channel)
+    link = create_link(rel_channel, "updates.xml")
     description = 'OBS Studio update channel'
 
     channel_el = ET.SubElement(rss_el, 'channel')
@@ -45,11 +51,11 @@ def create_feed(rel_author, rel_channel):
     ET.SubElement(channel_el, 'language').text = 'en'
     return rss_el
 
-def load_or_create_feed(rel_author, rel_channel):
-    link = create_link(rel_author, rel_channel, "updates.xml")
+def load_or_create_feed(rel_channel):
+    link = create_link(rel_channel, "updates.xml")
     import urllib2
 
-    feed = create_feed(rel_author, rel_channel)
+    feed = create_feed(rel_channel)
     try:
         resp = urllib2.urlopen(link)
         feed = ET.fromstring(resp.read())
@@ -62,8 +68,8 @@ def load_or_create_feed(rel_author, rel_channel):
 
     return feed
 
-def load_or_create_history(rel_author, rel_channel):
-    link = create_link(rel_author, rel_channel, "history")
+def load_or_create_history(rel_channel):
+    link = create_link(rel_channel, "history")
     import urllib2, cPickle
 
     try:
@@ -105,9 +111,9 @@ def populate_item(item, package, key, m, channel, package_type):
     signature = sign_package(package_path, key)
 
     user_version = create_version(m)
-    base_url = 'https://builds.catchexception.org/obs-studio/{0}/{1}'.format(m['user'], channel)
+    base_url = 'https://builds.catchexception.org/obs-studio/{0}'.format(channel)
 
-    title = 'OBS Studio {0} {1} by {2} ({3})'.format(user_version, channel, m['user'], package_type)
+    title = 'OBS Studio {0} on {1} ({2})'.format(user_version, channel, package_type)
 
     ET.SubElement(item, 'title').text = title
     ET.SubElement(item, qn_tag('sparkle', 'releaseNotesLink')).text = '{0}/notes.html'.format(base_url)
@@ -132,7 +138,7 @@ def mkdir(dirname):
         if e.errno != errno.EEXIST:
             raise
 
-def write_tag_html(f, name, desc):
+def write_tag_html(f, desc):
 
     ul = False
     for l in desc:
@@ -259,7 +265,7 @@ def write_notes_html(f, manifest, versions, history):
             <body>
             '''.format(manifest['tag']['name'], '", "'.join(str(v['internal_version']) for v in versions)))
     f.write('<h2>Release notes for version {0}</h2>'.format(manifest['tag']['name']))
-    write_tag_html(f, manifest['tag']['name'], manifest['tag']['description'])
+    write_tag_html(f, manifest['tag']['description'])
     for v in versions:
         removed_class = ' class="removed"'
         extra_style = removed_class if not v['known'] else ""
@@ -287,15 +293,13 @@ def write_notes_html(f, manifest, versions, history):
             </html>
             ''')
 
-
-
 def create_update(package, key, manifest_file):
     manifest = load_manifest(manifest_file)
 
-    channel = manifest['branch']
+    channel = create_channel(manifest)
 
-    feed_ele = load_or_create_feed(manifest['user'], channel)
-    history  = load_or_create_history(manifest['user'], channel)
+    feed_ele = load_or_create_feed(channel)
+    history  = load_or_create_history(channel)
 
     from distutils.version import LooseVersion
 
@@ -337,7 +341,6 @@ def create_update(package, key, manifest_file):
 
     write_notes_html(notes, manifest, versions, history)
 
-
     new_item = ET.SubElement(feed_ele.find('channel'), 'item')
     populate_item(new_item, package, key, manifest, channel, 'mpkg')
 
@@ -346,7 +349,7 @@ def create_update(package, key, manifest_file):
 
     from os import path
 
-    deploy_path = path.join('deploy', manifest['user'], channel)
+    deploy_path = path.join('deploy', channel)
     mkdir(deploy_path)
 
     feed_ele = ET.fromstring(ET.tostring(feed_ele, encoding='utf-8', method='xml'))
