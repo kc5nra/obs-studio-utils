@@ -199,6 +199,20 @@ def write_notes_html(f, manifest, versions, history):
                             link.innerHTML = link.innerHTML == "[-]" ? "[+]" : "[-]";
                         return false;
                     }}
+
+                    function toggle_lower(version)
+                    {{
+                        var captions = document.getElementsByTagName("h3");
+                        for (var i = 0; i < captions.length; i++) {{
+                            var parts = captions[i].id.split("caption");
+                            if (!parts || parts.length != 2)
+                                continue;
+
+                            var num = parseInt(parts[1]);
+                            if (num < version)
+                                toggle(num);
+                        }}
+                    }}
                 </script>
                 <style>
                     html
@@ -231,6 +245,11 @@ def write_notes_html(f, manifest, versions, history):
                 f.write(change_fmt.format(url.format(manifest['user'], c['sha1']), c['desc'], extra_style))
             f.write('</ul>')
     f.write('''
+                <script>
+                    parts = window.location.href.toString().split("#");
+                    if (parts.length == 2 && parts[1].search(/^\d+$/) == 0)
+                        toggle_lower(parseInt(parts[1]));
+                </script>
             </body>
             </html>
             ''')
