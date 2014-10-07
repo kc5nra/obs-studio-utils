@@ -201,6 +201,10 @@ def write_notes_html(f, manifest, versions, history):
                     }}
                 </script>
                 <style>
+                    html
+                    {{
+                        font-family: sans-serif;
+                    }}
                     h3 a
                     {{
                         font-family: monospace;
