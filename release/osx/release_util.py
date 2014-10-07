@@ -157,30 +157,41 @@ def write_notes_html(f, manifest, versions, history):
     # make oldest to newest
     commits = [dict(sha1 = c[:40], desc = c[41:]) for c in manifest['commits'][::-1]]
     known_commits = set(c['sha1'] for c in commits)
+    commit_known = lambda commit: commit['sha1'] in known_commits
 
     history[manifest['sha1']] = commits
 
-    assigned_commits = set()
+    for v in versions:
+        v['commit_set'] = set(c['sha1'] for c in history.get(v['sha1'], []))
 
     # oldest to newest
-    seen_sha1 = set()
-    for v in versions:
-        v['commits'] = []
-        v['removed_from_history'] = v['sha1'] not in known_commits
-        if v['sha1'] in seen_sha1:
-            continue
-        seen_sha1.add(v['sha1'])
-        if v['removed_from_history'] and not v['sha1'] in history:
-            continue
-        for commit in history[v['sha1']]:
-            if commit['sha1'] in assigned_commits:
-                continue
+    if versions:
+        v = versions[0]
+        v['commits'] = [dict(c) for c in history.get(v['sha1'], [])]
+        v['known'] = commit_known(v)
+        for c in v['commits']:
+            c['known'] = commit_known(c)
+            c['removed'] = False
 
-            known = commit['sha1'] in known_commits
-            v['commits'].append(dict(commit))
-            v['commits'][-1]['known'] = known
-            if known:
-                assigned_commits.add(commit['sha1'])
+    for p, v in zip(versions, versions[1:]):
+        v['commits'] = list()
+        v['known'] = commit_known(v)
+
+        removed = p['commit_set'] - v['commit_set']
+        added   = v['commit_set'] - p['commit_set']
+
+        for c in history.get(p['sha1'], [])[::-1]:
+            if c['sha1'] in removed:
+                v['commits'].append(dict(c))
+                v['commits'][-1]['removed'] = True
+
+        for c in history.get(v['sha1'], []):
+            if c['sha1'] in added:
+                v['commits'].append(dict(c))
+                v['commits'][-1]['removed'] = False
+
+        for c in v['commits']:
+            c['known'] = commit_known(c)
 
     f.write('''
             <!DOCTYPE html>
@@ -218,8 +229,7 @@ def write_notes_html(f, manifest, versions, history):
 
                             if (!version_found) {{
                                 captions[i].className += " old";
-                                if (!current_version || (current_version && !rebased))
-                                    toggle(parts[1]);
+                                toggle(parts[1]);
                             }}
 
                             if (current_version)
@@ -252,18 +262,20 @@ def write_notes_html(f, manifest, versions, history):
     write_tag_html(f, manifest['tag']['name'], manifest['tag']['description'])
     for v in versions:
         removed_class = ' class="removed"'
-        extra_style = removed_class if v['removed_from_history'] else ""
+        extra_style = removed_class if not v['known'] else ""
         expand_link = ' <a id="toggle{0}" href="#caption{0}" onclick="return toggle(\'{0}\')">[-]</a>'.format(v['internal_version']) if v['commits'] else ""
         caption = '<h3 id="caption{0}"{2}>Release notes for version {1}{3}</h3>'
         caption = caption.format(v['internal_version'], v['user_version'], extra_style, expand_link)
         f.write(caption)
         if len(v['commits']):
             url = 'https://github.com/{0}/obs-studio/commit/{1}'
-            change_fmt = '<li{2}><a href="{0}">(view)</a> {1}</li>'
+            change_fmt = '<li><a href="{0}"{2}>(view)</a> {1}</li>'
             f.write('<ul id="changes{0}">'.format(v['internal_version']))
             for c in v['commits']:
                 extra_style = removed_class if not c['known'] else ""
-                f.write(change_fmt.format(url.format(manifest['user'], c['sha1']), c['desc'], extra_style))
+                text = ("<span{0}>{1}</span>" if c['removed'] else "{1}").format(removed_class, c['desc'])
+                url_formatted = url.format(manifest['user'], c['sha1'])
+                f.write(change_fmt.format(url_formatted, text, extra_style))
             f.write('</ul>')
     f.write('''
                 <script>
