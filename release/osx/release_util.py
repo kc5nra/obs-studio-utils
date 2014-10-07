@@ -191,12 +191,21 @@ def write_notes_html(f, manifest, versions, history):
                 <script>
                     function toggle(version)
                     {{
-                        changes = document.getElementById("changes" + version);
+                        var changes = document.getElementById("changes" + version);
                         if (changes != null)
                             changes.style.display = changes.style.display == "none" ? "block" : "none";
+                        var link    = document.getElementById("toggle"  + version);
+                        if (link != null)
+                            link.innerHTML = link.innerHTML == "[-]" ? "[+]" : "[-]";
                         return false;
                     }}
                 </script>
+                <style>
+                    h3 a
+                    {{
+                        font-family: monospace;
+                    }}
+                </style>
             </head>
             <body>
             '''.format(manifest['tag']['name']))
@@ -205,8 +214,9 @@ def write_notes_html(f, manifest, versions, history):
     for v in versions:
         strike_through = ' style="text-decoration:line-through"'
         extra_style = strike_through if v['removed_from_history'] else ""
-        caption = '<h3 id="caption{0}"{2}><a href="#caption{0}" onclick="return toggle(\'{0}\')"> Release notes for version {1}</a></h3>'
-        caption = caption.format(v['internal_version'], v['user_version'], extra_style)
+        expand_link = ' <a id="toggle{0}" href="#caption{0}" onclick="return toggle(\'{0}\')">[-]</a>'.format(v['internal_version']) if v['commits'] else ""
+        caption = '<h3 id="caption{0}"{2}>Release notes for version {1}{3}</h3>'
+        caption = caption.format(v['internal_version'], v['user_version'], extra_style, expand_link)
         f.write(caption)
         if len(v['commits']):
             url = 'https://github.com/{0}/obs-studio/commit/{1}'
