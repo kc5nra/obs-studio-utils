@@ -120,6 +120,9 @@ def populate_item(item, package, key, m, channel, package_type):
     ET.SubElement(item, 'pubDate').text = formatdate()
     ET.SubElement(item, qn_tag('ce', 'packageType')).text = package_type
 
+    if m['stable']:
+        ET.SubElement(item, qn_tag('ce', 'deployed')).text = 'false'
+
     ET.SubElement(item, 'enclosure', {
         'length': str(os.stat(package_path).st_size),
         'type': 'application/octet-stream',
