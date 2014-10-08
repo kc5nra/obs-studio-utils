@@ -1,29 +1,10 @@
 from xml.etree import ElementTree as ET
 
-def CDATA(text=None):
-    element = ET.Element('![CDATA[')
-    element.text = text
-    return element
-
-ET._original_serialize_xml = ET._serialize_xml
-
-def _serialize_xml(write, elem, encoding, qnames, namespaces):
-    if elem.tag == '![CDATA[':
-        write("\n<%s%s]]>\n" % (
-                elem.tag, elem.text))
-        return
-    return ET._original_serialize_xml(
-        write, elem, encoding, qnames, namespaces)
-ET._serialize_xml = ET._serialize['xml'] = _serialize_xml
-
 def qn_tag(n, t):
     return {
         'ce': str(ET.QName('http://catchexception.org/xml-namespaces/ce', t)),
         'sparkle': str(ET.QName('http://www.andymatuschak.org/xml-namespaces/sparkle', t))
     }[n]
-
-ET.register_namespace('sparkle', 'http://www.andymatuschak.org/xml-namespaces/sparkle')
-ET.register_namespace('ce', 'http://catchexception.org/xml-namespaces/ce')
 
 def create_channel(m):
     if m['stable']:
@@ -302,6 +283,11 @@ def write_notes_html(f, manifest, versions, history):
             </html>
             ''')
 
+def dump_xml(file, element):
+    with open(file, 'w') as f:
+        f.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
+        ET.ElementTree(element).write(f, encoding='utf-8', method='xml')
+
 def create_update(package, key, manifest_file):
     manifest = load_manifest(manifest_file)
 
@@ -366,9 +352,7 @@ def create_update(package, key, manifest_file):
 
     feed_ele = ET.fromstring(ET.tostring(feed_ele, encoding='utf-8', method='xml'))
 
-    with open(path.join(deploy_path, 'updates.xml'), 'w') as f:
-        f.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
-        ET.ElementTree(feed_ele).write(f, encoding='utf-8', method='xml')
+    dump_xml(path.join(deploy_path, 'updates.xml'), feed_ele)
 
     with open(path.join(deploy_path, 'notes.html'), 'w') as f:
         f.write(notes.getvalue())
@@ -382,11 +366,15 @@ def create_update(package, key, manifest_file):
     shutil.copy('{0}-app.zip'.format(package), path.join(deploy_path, '{0}-app.zip'.format(create_version(manifest))))
 
 
-import argparse
-parser = argparse.ArgumentParser(description='obs-studio release util')
-parser.add_argument('-m', '--manifest', dest='manifest', default='manifest')
-parser.add_argument('-p', '--package', dest='package', default='OBS')
-parser.add_argument('-k', '--key', dest='key')
-args = parser.parse_args()
+if __name__ == "__main__":
+    ET.register_namespace('sparkle', 'http://www.andymatuschak.org/xml-namespaces/sparkle')
+    ET.register_namespace('ce', 'http://catchexception.org/xml-namespaces/ce')
 
-create_update(args.package, args.key, args.manifest)
+    import argparse
+    parser = argparse.ArgumentParser(description='obs-studio release util')
+    parser.add_argument('-m', '--manifest', dest='manifest', default='manifest')
+    parser.add_argument('-p', '--package', dest='package', default='OBS')
+    parser.add_argument('-k', '--key', dest='key')
+    args = parser.parse_args()
+
+    create_update(args.package, args.key, args.manifest)
