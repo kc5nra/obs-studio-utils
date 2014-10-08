@@ -73,14 +73,9 @@ def save_manifest(latest_tag, user, jenkins_build, branch, stable):
     with open('manifest', 'w') as f:
         cPickle.dump(manifest, f)
 
-def prepare_pkg(project, package_id, latest_tag, jenkins_build):
-    tag_diff = cmd('git rev-list {0}..HEAD'.format(latest_tag))
-    tag_diff_cnt = len(tag_diff)
-    new_version = latest_tag
-    if tag_diff_cnt:
-        new_version = '{0}.{1}.{2}'.format(new_version, str(tag_diff_cnt), jenkins_build)
+def prepare_pkg(project, package_id):
     cmd('packagesutil --file "{0}" set package-1 identifier {1}'.format(project, package_id))
-    cmd('packagesutil --file "{0}" set package-1 version {1}'.format(project, new_version))
+    cmd('packagesutil --file "{0}" set package-1 version {1}'.format(project, '1.0'))
 
 
 import argparse
@@ -95,5 +90,5 @@ args = parser.parse_args()
 
 latest_tag = cmd('git describe --tags --abbrev=0')
 gen_html(args.user, latest_tag)
-prepare_pkg(args.project, args.package_id, latest_tag, args.jenkins_build)
+prepare_pkg(args.project, args.package_id)
 save_manifest(latest_tag, args.user, args.jenkins_build, args.branch, args.stable)
