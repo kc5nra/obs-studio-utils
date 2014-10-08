@@ -189,6 +189,12 @@ def write_notes_html(f, manifest, versions, history):
         for c in v['commits']:
             c['known'] = commit_known(c)
 
+    have_displayable_commits = False
+    for v in versions:
+        if v['commits']:
+            have_displayable_commits = True
+            break
+
     f.write('''
             <!DOCTYPE html>
             <html>
@@ -256,23 +262,24 @@ def write_notes_html(f, manifest, versions, history):
             '''.format(manifest['tag']['name'], '", "'.join(str(v['internal_version']) for v in versions)))
     f.write('<h2>Release notes for version {0}</h2>'.format(manifest['tag']['name']))
     write_tag_html(f, manifest['tag']['description'])
-    for v in versions:
-        removed_class = ' class="removed"'
-        extra_style = removed_class if not v['known'] else ""
-        expand_link = ' <a id="toggle{0}" href="#caption{0}" onclick="return toggle(\'{0}\')">[-]</a>'.format(v['internal_version']) if v['commits'] else ""
-        caption = '<h3 id="caption{0}"{2}>Release notes for version {1}{3}</h3>'
-        caption = caption.format(v['internal_version'], v['user_version'], extra_style, expand_link)
-        f.write(caption)
-        if len(v['commits']):
-            url = 'https://github.com/{0}/obs-studio/commit/{1}'
-            change_fmt = '<li><a href="{0}"{2}>(view)</a> {1}</li>'
-            f.write('<ul id="changes{0}">'.format(v['internal_version']))
-            for c in v['commits']:
-                extra_style = removed_class if not c['known'] else ""
-                text = ("<span{0}>{1}</span>" if c['removed'] else "{1}").format(removed_class, c['desc'])
-                url_formatted = url.format(manifest['user'], c['sha1'])
-                f.write(change_fmt.format(url_formatted, text, extra_style))
-            f.write('</ul>')
+    if have_displayable_commits:
+        for v in versions:
+            removed_class = ' class="removed"'
+            extra_style = removed_class if not v['known'] else ""
+            expand_link = ' <a id="toggle{0}" href="#caption{0}" onclick="return toggle(\'{0}\')">[-]</a>'.format(v['internal_version']) if v['commits'] else ""
+            caption = '<h3 id="caption{0}"{2}>Release notes for version {1}{3}</h3>'
+            caption = caption.format(v['internal_version'], v['user_version'], extra_style, expand_link)
+            f.write(caption)
+            if len(v['commits']):
+                url = 'https://github.com/{0}/obs-studio/commit/{1}'
+                change_fmt = '<li><a href="{0}"{2}>(view)</a> {1}</li>'
+                f.write('<ul id="changes{0}">'.format(v['internal_version']))
+                for c in v['commits']:
+                    extra_style = removed_class if not c['known'] else ""
+                    text = ("<span{0}>{1}</span>" if c['removed'] else "{1}").format(removed_class, c['desc'])
+                    url_formatted = url.format(manifest['user'], c['sha1'])
+                    f.write(change_fmt.format(url_formatted, text, extra_style))
+                f.write('</ul>')
     f.write('''
                 <script>
                     parts = window.location.href.toString().split("#");
