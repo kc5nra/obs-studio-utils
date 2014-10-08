@@ -36,6 +36,7 @@ parser.add_argument('-s', '--sparkle-framework', dest='sparkle', default=None)
 parser.add_argument('-b', '--base-url', dest='base_url', default='https://builds.catchexception.org/obs-studio')
 parser.add_argument('-u', '--user', dest='user', default='jp9000')
 parser.add_argument('-c', '--channel', dest='channel', default='master')
+parser.add_argument('-s', '--stable', dest='stable', required=False, action='store_true', default=False)
 args = parser.parse_args()
 
 def cmd(cmd):
@@ -131,20 +132,21 @@ for path, external, copy_as in inspected:
 		continue #built with install_rpath hopefully
 	changes.append("-change '%s' '@rpath/%s'"%(path, copy_as))
 changes = " ".join(changes)
- 
 
 info = plistlib.readPlist(plist_path)
-
-
 
 latest_tag = cmd('git describe --tags --abbrev=0')
 log = cmd('git log --pretty=oneline {0}...HEAD'.format(latest_tag))
 
-
 from os import path
 # set version
-info["CFBundleVersion"] = args.build_number
-info["CFBundleShortVersionString"] = '{0}.{1}'.format(latest_tag, args.build_number)
+if args.stable:
+    info["CFBundleVersion"] = latest_tag
+    info["CFBundleShortVersionString"] = latest_tag
+else:
+    info["CFBundleVersion"] = args.build_number
+    info["CFBundleShortVersionString"] = '{0}.{1}'.format(latest_tag, args.build_number)
+
 info["SUPublicDSAKeyFile"] = path.basename(args.public_key)
 info["SUFeedURL"] = '{0}/{1}/{2}/updates.xml'.format(args.base_url, args.user, args.channel)
 info["OBSFeedsURL"] = '{0}/feeds.xml'.format(args.base_url)
