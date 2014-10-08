@@ -108,7 +108,7 @@ def populate_item(item, package, key, m, channel, package_type):
         ET.SubElement(item, qn_tag('ce', 'deployed')).text = 'false'
         version = m['tag']['name']
     else:
-        version = user_version
+        version = m['jenkins_build']
 
     ET.SubElement(item, 'enclosure', {
         'length': str(os.stat(package_path).st_size),
