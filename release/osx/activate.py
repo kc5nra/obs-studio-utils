@@ -23,6 +23,5 @@ items = feed.findall('''.//item/enclosure[@{0}='{1}']..'''.format(qn_tag('sparkl
 
 for item in items:
     item.find(qn_tag('ce', 'deployed')).text = str(args.activate)
-    ET.dump(item)
 
 dump_xml('updates.xml', feed)
