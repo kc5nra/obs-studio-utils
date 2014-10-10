@@ -37,6 +37,7 @@ parser.add_argument('-b', '--base-url', dest='base_url', default='https://builds
 parser.add_argument('-u', '--user', dest='user', default='jp9000')
 parser.add_argument('-c', '--channel', dest='channel', default='master')
 parser.add_argument('-s', '--stable', dest='stable', required=False, action='store_true', default=False)
+parser.add_argument('-p', '--prefix', dest='prefix', default='')
 args = parser.parse_args()
 
 def cmd(cmd):
@@ -92,7 +93,7 @@ while inspect:
 	path = target.path
 	if path[0] == "@":
 		continue
-	out = check_output("otool -L '%s'"%path, shell=True,
+	out = check_output("{0}otool -L '{1}'".format(args.prefix, path), shell=True,
 			universal_newlines=True)
  
 	if "QtCore" in path:
@@ -167,8 +168,8 @@ if args.sparkle is not None:
 prefix = "tmp/Contents/Resources/"
 sparkle_path = '@loader_path/{0}/Frameworks/Sparkle.framework/Versions/A/Sparkle'
 
-cmd('install_name_tool -change {0} {1} {2}/bin/obs'.format(
-    actual_sparkle_path, sparkle_path.format('../..'), prefix))
+cmd('{0}install_name_tool -change {1} {2} {3}/bin/obs'.format(
+    args.prefix, actual_sparkle_path, sparkle_path.format('../..'), prefix))
 
 
 
@@ -192,8 +193,7 @@ for path, external, copy_as in inspected:
 		id_ = "-id '@rpath/../%s'"%filename
 		filename = prefix + filename
  
-	cmd = "install_name_tool %s %s %s '%s'"%(changes, id_, rpath, filename)
-	#print(repr(cmd))
+	cmd = "{0}install_name_tool {1} {2} {3} '{4}'".format(args.prefix, changes, id_, rpath, filename)
 	call(cmd, shell=True)
 
 try:
