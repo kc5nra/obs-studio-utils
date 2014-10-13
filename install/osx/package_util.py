@@ -42,7 +42,7 @@ def gen_html(github_user, latest_tag):
                 ul = False
                 if ul:
                     f.write('</ul>')
-                f.write('<p>{0}</p>'.format(l))
+                f.write('<p/><p>{0}</p>'.format(l))
         if ul:
             f.write('</ul>')
         f.write('</p></body></html>')
