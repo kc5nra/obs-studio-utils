@@ -39,9 +39,9 @@ def gen_html(github_user, latest_tag):
                     f.write('<ul>')
                 f.write('<li>&bull; {0}</li>'.format(re.sub(r'^(\s*)?[*](\s*)?', '', l)))
             else:
-                ul = False
                 if ul:
-                    f.write('</ul><p/><p/>')
+                    f.write('</ul><p/>')
+                ul = False
                 f.write('<p>{0}</p>'.format(l))
         if ul:
             f.write('</ul>')
