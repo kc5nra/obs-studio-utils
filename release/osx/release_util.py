@@ -150,8 +150,8 @@ def write_tag_html(f, desc):
         f.write('</ul>')
 
 def write_notes_html(f, manifest, versions, history):
-    # make oldest to newest
-    commits = [dict(sha1 = c[:40], desc = c[41:]) for c in manifest['commits'][::-1]]
+    # make newest to oldest
+    commits = [dict(sha1 = c[:40], desc = c[41:]) for c in manifest['commits']]
     known_commits = set(c['sha1'] for c in commits)
     commit_known = lambda commit: commit['sha1'] in known_commits
 
@@ -176,15 +176,15 @@ def write_notes_html(f, manifest, versions, history):
         removed = p['commit_set'] - v['commit_set']
         added   = v['commit_set'] - p['commit_set']
 
-        for c in history.get(p['sha1'], [])[::-1]:
-            if c['sha1'] in removed:
-                v['commits'].append(dict(c))
-                v['commits'][-1]['removed'] = True
-
         for c in history.get(v['sha1'], []):
             if c['sha1'] in added:
                 v['commits'].append(dict(c))
                 v['commits'][-1]['removed'] = False
+
+        for c in history.get(p['sha1'], [])[::-1]:
+            if c['sha1'] in removed:
+                v['commits'].append(dict(c))
+                v['commits'][-1]['removed'] = True
 
         for c in v['commits']:
             c['known'] = commit_known(c)
@@ -260,10 +260,8 @@ def write_notes_html(f, manifest, versions, history):
             </head>
             <body>
             '''.format(manifest['tag']['name'], '", "'.join(str(v['internal_version']) for v in versions)))
-    f.write('<h2>Release notes for version {0}</h2>'.format(manifest['tag']['name']))
-    write_tag_html(f, manifest['tag']['description'])
     if have_displayable_commits:
-        for v in versions:
+        for v in versions[::-1]:
             removed_class = ' class="removed"'
             extra_style = removed_class if not v['known'] else ""
             expand_link = ' <a id="toggle{0}" href="#caption{0}" onclick="return toggle(\'{0}\')">[-]</a>'.format(v['internal_version']) if v['commits'] else ""
@@ -280,6 +278,8 @@ def write_notes_html(f, manifest, versions, history):
                     url_formatted = url.format(manifest['user'], c['sha1'])
                     f.write(change_fmt.format(url_formatted, text, extra_style))
                 f.write('</ul>')
+    f.write('<h2>Release notes for version {0}</h2>'.format(manifest['tag']['name']))
+    write_tag_html(f, manifest['tag']['description'])
     f.write('''
                 <script>
                     parts = window.location.href.toString().split("#");
