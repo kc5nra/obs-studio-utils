@@ -144,12 +144,13 @@ from os import path
 if args.stable:
     info["CFBundleVersion"] = latest_tag
     info["CFBundleShortVersionString"] = latest_tag
+    info["SUFeedURL"] = '{0}/stable/updates.xml'.format(args.base_url)
 else:
     info["CFBundleVersion"] = args.build_number
     info["CFBundleShortVersionString"] = '{0}.{1}'.format(latest_tag, args.build_number)
+    info["SUFeedURL"] = '{0}/{1}/{2}/updates.xml'.format(args.base_url, args.user, args.channel)
 
 info["SUPublicDSAKeyFile"] = path.basename(args.public_key)
-info["SUFeedURL"] = '{0}/{1}/{2}/updates.xml'.format(args.base_url, args.user, args.channel)
 info["OBSFeedsURL"] = '{0}/feeds.xml'.format(args.base_url)
 
 app_name = info["CFBundleName"]+".app"
