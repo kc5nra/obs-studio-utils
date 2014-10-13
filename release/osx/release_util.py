@@ -157,6 +157,10 @@ def write_notes_html(f, manifest, versions, history):
 
     history[manifest['sha1']] = commits
 
+    from distutils.version import LooseVersion
+    last_tag = LooseVersion(manifest['tag']['name'])
+    versions = [v for v in versions if LooseVersion(v['user_version']) >= last_tag]
+
     for v in versions:
         v['commit_set'] = set(c['sha1'] for c in history.get(v['sha1'], []))
 
