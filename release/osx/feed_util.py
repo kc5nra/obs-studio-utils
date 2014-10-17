@@ -30,6 +30,7 @@ import argparse
 parser = argparse.ArgumentParser(description='obs-studio release util')
 parser.add_argument('-d', '--directory', dest='dir', default='.')
 parser.add_argument('-u', '--base-url', dest='base_url', default='https://builds.catchexception.org/obs-studio')
+parser.add_argument('-r', '--remove-stale', dest='remove_stale', required=False, action='store_true', default=False)
 args = parser.parse_args()
 
 r = {}
@@ -62,7 +63,11 @@ for d in get_sub('.'):
                 'version': i.find('enclosure').get(qn_tag('sparkle', 'shortVersionString'))
             }
 
-print "Stale channels: {0}".format(stale_channels)
+print "stale channels being removed: {0}".format(stale_channels)
+if args.remove_stale:
+    for k in stale_channels:
+        import shutil
+        shutil.rmtree(os.path.join(args.dir, k))
 
 import json
 with open(os.path.join(args.dir, 'feeds.json'), 'w') as f:
