@@ -29,16 +29,29 @@ def get_last_item(f):
     # assume there is a valid version if updates.xml exists
     return t.findall('channel/item')[-1]
 
+git_url = 'https://github.com/{0}/obs-studio.git'
+
+stale_channels = []
 for d in get_sub('.'):
+    if d != 'stable':
+        from get_remote_channels import get_remote_channels
+        valid_channels = get_remote_channels(d, git_url.format(d))
     for root, dirs, files in os.walk(d):
       for f in fnmatch.filter(files, 'updates.xml'):
             c = os.path.dirname(os.path.join(root, f))
+
+            if d != 'stable' and c not in valid_channels:
+                stale_channels.append(c)
+                continue
+
             i = get_last_item(os.path.join(root, f))
             r[c] = {
                 'url': '{0}/{1}/updates.xml'.format(args.base_url, c),
                 'date': i.find('pubDate').text,
                 'version': i.find('enclosure').get(qn_tag('sparkle', 'shortVersionString'))
             }
+
+print "Stale channels: {0}".format(stale_channels)
 
 import json
 with open(os.path.join(args.dir, 'feeds.json'), 'w') as f:
