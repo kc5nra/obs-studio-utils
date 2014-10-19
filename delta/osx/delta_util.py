@@ -94,7 +94,6 @@ def prune_old_deltas(feed_ele, delta_infos, base_dir):
                 pass
 
 def compute_required_deltas(delta_infos):
-    required_for_version = defaultdict(set)
     previous_versions    = set()
     versions             = sorted(delta_infos.keys())
 
@@ -102,12 +101,6 @@ def compute_required_deltas(delta_infos):
         delta_info = delta_infos[version]
         delta_info.deltas_needed.update(previous_versions - delta_info.deltas)
         previous_versions.add(version)
-
-        for prev in delta_info.deltas_needed:
-            required_for_version[prev].add(version)
-
-        """if delta_info.deltas_needed:
-            print "Required deltas for {0}: {1}".format(version, delta_info.deltas_needed)"""
 
     latest_versions = set(versions[-2:])
 
@@ -130,9 +123,9 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
     feed_ele    = load_feed(feed_path)
     delta_infos = create_delta_infos(feed_ele)
 
-    prune_old_deltas(feed_ele, delta_infos, base_dir)
+    required_deltas = compute_required_deltas(delta_infos)
 
-    required_deltas, required_for_version = compute_required_deltas(delta_infos)
+    prune_old_deltas(feed_ele, delta_infos, base_dir)
 
     zip_pattern   = path.join(path.dirname(feed_path), "{0}-app.zip")
     delta_pattern = path.join(path.dirname(feed_path), "{0}-{1}.delta")
