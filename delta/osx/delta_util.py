@@ -70,6 +70,9 @@ def create_delta_infos(feed_ele):
             delta_infos[internal_version].delta_elements.append(delta_elem)
 
             for delta in delta_elem.findall('enclosure'):
+                if delta.get(qn_tag('sparkle', 'version')) != str(internal_version):
+                    delta_elem.remove(delta)
+                    continue
                 info.deltas.add(LooseVersion(delta.get(qn_tag('sparkle', 'deltaFrom'))))
 
     return delta_infos
