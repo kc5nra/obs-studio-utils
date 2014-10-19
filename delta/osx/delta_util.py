@@ -86,7 +86,7 @@ def prune_old_deltas(feed_ele, delta_infos, base_dir):
             sys.stdout.flush()
         for delta_elem in delta_infos[version].delta_elements:
             for elem in delta_elem:
-                path = get_feed_path(elem.text, base_dir)
+                path = get_feed_path(elem.get('url'), base_dir)
                 try:
                     os.unlink(path)
                 except OSError:
@@ -153,7 +153,7 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
                     ET.SubElement(elem, 'enclosure', {
                         'length': str(os.stat(delta_filename).st_size),
                         'type': 'application/octet-stream',
-                        'url': '{0}/{1}'.format(info.base_url, path.basename(delta_filename)),
+                        'url': '{0}{1}'.format(info.base_url, path.basename(delta_filename)),
                         qn_tag('sparkle', 'dsaSignature'): signature,
                         qn_tag('sparkle', 'shortVersionString'): str(info.user_version),
                         qn_tag('sparkle', 'version'): str(version),
