@@ -86,7 +86,7 @@ def prune_old_deltas(feed_ele, delta_infos, base_dir):
             sys.stdout.flush()
         for delta_elem in delta_infos[version].delta_elements:
             for elem in delta_elem:
-                path = get_feed_path(elem.text, base_dir)
+                path = get_feed_path(elem.get('url'), base_dir)
                 try:
                     os.unlink(path)
                 except OSError:
