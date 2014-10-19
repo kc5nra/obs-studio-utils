@@ -28,8 +28,8 @@ def create_ppa(tag, jenkins_build):
     args = {
         'tag': tag,
         'jenkins_build': jenkins_build,
-        'changelog': '\n'.join(get_tag_info(tag)),
-        'date': cmd('date')
+        'changelog': '\n '.join(get_tag_info(tag)),
+        'date': cmd('date -R')
     }
     control_template = get_template(os.path.join(debian_dir, 'changelog'))
 
