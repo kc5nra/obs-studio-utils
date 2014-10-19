@@ -128,28 +128,30 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
             unzipped_versions[version] = create_temp_app(zip_pattern.format(delta_infos[version].user_version))
         return unzipped_versions[version][1]
 
-    import os
-    for version in processing_order:
-        info = delta_infos[version]
-        for from_ in info.deltas_needed:
-            print "Creating delta:", from_, "->", version
-            delta_filename = delta_pattern.format(from_, version)
-            build_delta(unzip(from_), unzip(version), delta_filename, binary_delta)
-            signature = sign_delta(delta_filename, key)
-            for elem in info.delta_elements:
-                ET.SubElement(elem, 'enclosure', {
-                    'length': str(os.stat(delta_filename).st_size),
-                    'type': 'application/octet-stream',
-                    'url': '{0}/{1}'.format(info.base_url, delta_filename),
-                    qn_tag('sparkle', 'dsaSignature'): signature,
-                    qn_tag('sparkle', 'shortVersionString'): str(info.user_version),
-                    qn_tag('sparkle', 'version'): str(version),
-                    qn_tag('sparkle', 'deltaFrom'): str(from_),
-                })
+    try:
+        import os
+        for version in processing_order:
+            info = delta_infos[version]
+            for from_ in info.deltas_needed:
+                print "Creating delta:", from_, "->", version
+                delta_filename = delta_pattern.format(from_, version)
+                build_delta(unzip(from_), unzip(version), delta_filename, binary_delta)
+                signature = sign_delta(delta_filename, key)
+                for elem in info.delta_elements:
+                    ET.SubElement(elem, 'enclosure', {
+                        'length': str(os.stat(delta_filename).st_size),
+                        'type': 'application/octet-stream',
+                        'url': '{0}/{1}'.format(info.base_url, delta_filename),
+                        qn_tag('sparkle', 'dsaSignature'): signature,
+                        qn_tag('sparkle', 'shortVersionString'): str(info.user_version),
+                        qn_tag('sparkle', 'version'): str(version),
+                        qn_tag('sparkle', 'deltaFrom'): str(from_),
+                    })
 
-    import shutil
-    for paths in unzipped_versions.values():
-        shutil.rmtree(paths[0])
+    finally:
+        import shutil
+        for paths in unzipped_versions.values():
+            shutil.rmtree(paths[0])
 
     feed_ele = ET.fromstring(ET.tostring(feed_ele.getroot(), encoding='utf-8', method='xml'))
 
