@@ -153,7 +153,7 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
                     ET.SubElement(elem, 'enclosure', {
                         'length': str(os.stat(delta_filename).st_size),
                         'type': 'application/octet-stream',
-                        'url': '{0}/{1}'.format(info.base_url, path.basename(delta_filename)),
+                        'url': '{0}{1}'.format(info.base_url, path.basename(delta_filename)),
                         qn_tag('sparkle', 'dsaSignature'): signature,
                         qn_tag('sparkle', 'shortVersionString'): str(info.user_version),
                         qn_tag('sparkle', 'version'): str(version),
