@@ -1,5 +1,5 @@
-obs-studio (${TAG}-${JENKINS}ppa2) trusty; urgency=low
+obs-studio (${tag}-0ppa${jenkins_build}) trusty; urgency=low
 
-${CHANGELOG}
+${changelog}
 
- -- John Bradley <jrb@turrettech.com>  ${DATE}
+ -- John Bradley <jrb@turrettech.com>  ${date}
