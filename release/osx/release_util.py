@@ -233,7 +233,7 @@ def write_notes_html(f, manifest, versions, history):
                             var rebased = captions[i].className.search(/rebased/) != -1;
                             var current_version = parts[1] == version;
 
-                            if (!version_found) {{
+                            if (version_found) {{
                                 captions[i].className += " old";
                                 toggle(parts[1]);
                             }}
