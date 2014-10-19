@@ -39,7 +39,7 @@ def create_ppa(tag, jenkins_build):
     with open('obs-studio/debian/changelog', 'w') as f:
         f.write(control_template.substitute(args))
 
-    cmd('tar cvf obs-studio_{0}.tar.gz --exclude ".git*" obs-studio'.format(tag))
+    cmd('tar cvf obs-studio_{0}.orig.tar.gz --exclude ".git*" obs-studio'.format(tag))
 
 if __name__ == "__main__":
 
