@@ -61,13 +61,13 @@ def create_delta_infos(feed_ele):
         if internal_version not in delta_infos:
             base_url = en_ele.get('url').rsplit("/", 1)[0] + "/"
             info = DeltaInfo(internal_version, user_version, set(), set(), list(), base_url)
-            delta_infos[user_version] = info
+            delta_infos[internal_version] = info
 
         delta_elem = item.find('{http://www.andymatuschak.org/xml-namespaces/sparkle}deltas')
         if delta_elem is None:
             delta_elem = ET.SubElement(item, 'sparkle:deltas')
         if delta_elem is not None:
-            delta_infos[user_version].delta_elements.append(delta_elem)
+            delta_infos[internal_version].delta_elements.append(delta_elem)
 
             for delta in delta_elem.findall('enclosure'):
                 info.deltas.add(LooseVersion(delta.get(qn_tag('sparkle', 'deltaFrom'))))
