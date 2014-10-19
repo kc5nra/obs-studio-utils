@@ -2,10 +2,10 @@ Source: obs-studio
 Section: video
 Priority: optional
 Maintainer: John Bradley <jrb@turrettech.com>
-Build-Depends: cmake, build-essential, libpulse-dev, qtbase5-dev, libqt5x11extras5-dev, libavcodec-dev, libavformat-dev, libswscale-dev, libx264-dev, libswresample-dev, libxinerama-dev, libxcomposite-dev, libxrandr-dev
+Build-Depends: debhelper (>= 8.0.0), cdbs, cmake, build-essential, libpulse-dev, qtbase5-dev, libqt5x11extras5-dev, libavcodec-dev, libavformat-dev, libswscale-dev, libx264-dev, libswresample-dev, libxinerama-dev, libxcomposite-dev, libxrandr-dev
 Homepage: http://obsproject.org
 
 Package: obs-studio
 Architecture: any
-Depends: libpulse, qtbase5, libqt5x11extras5, libavcodec, libavformat, libswscale, libx264, libswresample, libxinerama, libxcomposite, libxrandr
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: OBS Studio for Ubuntu 
