@@ -1,6 +1,7 @@
 from xml.etree import ElementTree as ET
 from collections import namedtuple, defaultdict
 from distutils.version import LooseVersion
+import sys
 
 # make LooseVersion usable as dict key by implementing __hash__, don't call parse on LooseVersion keys!
 LooseVersion.__hash__ = lambda self: hash(str(self))
@@ -79,6 +80,7 @@ def prune_old_deltas(feed_ele, delta_infos, base_dir):
     for version in old_versions:
         if delta_infos[version].delta_elements:
             print "Pruning old deltas for", version
+            sys.stdout.flush()
         for delta_elem in delta_infos[version].delta_elements:
             for elem in delta_elem:
                 path = get_feed_path(elem.text, base_dir)
@@ -147,6 +149,7 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
             info = delta_infos[version]
             for from_ in info.deltas_needed:
                 print "Creating delta:", from_, "->", version
+                sys.stdout.flush()
                 delta_filename = delta_pattern.format(from_, version)
                 build_delta(unzip(from_), unzip(version), delta_filename, binary_delta)
                 signature = sign_delta(delta_filename, key)
@@ -182,6 +185,7 @@ def create_deltas_for_feeds(feeds_json, base_dir, delta_tool, key):
     for name, channel in feeds.iteritems():
         feed_path = get_feed_path(channel['url'], base_dir)
         print "Processing %s:"%name, channel['url'], "->", feed_path
+        sys.stdout.flush()
         create_deltas(feed_path, base_dir, key, delta_tool)
 
 if __name__ == "__main__":
