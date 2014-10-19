@@ -1,0 +1,5 @@
+obs-studio (${TAG}-${JENKINS}ppa2) trusty; urgency=low
+
+${CHANGELOG}
+
+ -- John Bradley <jrb@turrettech.com>  ${DATE}
