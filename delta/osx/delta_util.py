@@ -73,6 +73,24 @@ def create_delta_infos(feed_ele):
 
     return delta_infos
 
+def prune_old_deltas(feed_ele, delta_infos, base_dir):
+    import os
+    old_versions = sorted(delta_infos)[:-2]
+    for version in old_versions:
+        if delta_infos[version].delta_elements:
+            print "Pruning old deltas for", version
+        for delta_elem in delta_infos[version].delta_elements:
+            for elem in delta_elem:
+                path = get_feed_path(elem.text, base_dir)
+                try:
+                    os.unlink(path)
+                except OSError:
+                    pass
+            try:
+                feed_ele.getroot().remove(delta_elem)
+            except ValueError:
+                pass
+
 def compute_required_deltas(delta_infos):
     required_for_version = defaultdict(set)
     previous_versions    = set()
@@ -89,14 +107,9 @@ def compute_required_deltas(delta_infos):
         """if delta_info.deltas_needed:
             print "Required deltas for {0}: {1}".format(version, delta_info.deltas_needed)"""
 
-    return {k: v for k, v in delta_infos.iteritems() if v.deltas_needed}, required_for_version
+    latest_versions = set(versions[-2:])
 
-def compute_processing_order(delta_infos, required_for_version):
-    version_required_deltas = lambda version: delta_infos[version].deltas_needed if version in delta_infos else []
-    delta_operations = lambda version: len(required_for_version[version]) + len(version_required_deltas(version))
-    processing_order = sorted(delta_infos, key=delta_operations)
-    #print [(v, delta_operations(v)) for v in processing_order]
-    return processing_order
+    return {k: v for k, v in delta_infos.iteritems() if v.deltas_needed and k in latest_versions}
 
 def build_delta(source, target, diff, binary_delta):
     from subprocess import call
@@ -115,9 +128,9 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
     feed_ele    = load_feed(feed_path)
     delta_infos = create_delta_infos(feed_ele)
 
-    required_deltas, required_for_version = compute_required_deltas(delta_infos)
+    prune_old_deltas(feed_ele, delta_infos, base_dir)
 
-    processing_order = compute_processing_order(required_deltas, required_for_version)
+    required_deltas, required_for_version = compute_required_deltas(delta_infos)
 
     zip_pattern   = path.join(path.dirname(feed_path), "{0}-app.zip")
     delta_pattern = path.join(path.dirname(feed_path), "{0}-{1}.delta")
@@ -130,7 +143,7 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
 
     try:
         import os
-        for version in processing_order:
+        for version in required_deltas:
             info = delta_infos[version]
             for from_ in info.deltas_needed:
                 print "Creating delta:", from_, "->", version
