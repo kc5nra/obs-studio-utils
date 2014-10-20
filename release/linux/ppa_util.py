@@ -8,9 +8,9 @@ def get_template(file):
         import string
         return string.Template(f.read())
 
-def get_tag_info(tag):
-    rev = cmd('git -C obs-studio rev-parse {0}'.format(tag))
-    anno = cmd('git -C obs-studio cat-file -p {0}'.format(rev))
+def get_tag_info(archive, tag):
+    rev = cmd('git -C {0} rev-parse {1}'.format(archive, tag))
+    anno = cmd('git -C {0} cat-file -p {1}'.format(archive, rev))
     tag_info = []
     for i, v in enumerate(anno.splitlines()):
         if i <= 4:
@@ -31,7 +31,7 @@ def create_ppa(tag, jenkins_build, ppa):
     args = {
         'tag': tag,
         'jenkins_build': jenkins_build,
-        'changelog': '  '+'\n  '.join(get_tag_info(tag)),
+        'changelog': '  '+'\n  '.join(get_tag_info(archive, tag)),
         'date': cmd('date -R'),
         'ppa': ppa
     }
