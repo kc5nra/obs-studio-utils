@@ -136,11 +136,18 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
             unzipped_versions[version] = create_temp_app(zip_pattern.format(delta_infos[version].user_version))
         return unzipped_versions[version][1]
 
+
+    deltas_from = defaultdict(list)
+    for version in required_deltas:
+        info = delta_infos[version]
+        for from_ in info.deltas_needed:
+            deltas_from[from_].append(info)
+
     try:
         import os
-        for version in required_deltas:
-            info = delta_infos[version]
-            for from_ in info.deltas_needed:
+        for from_, infos in sorted(deltas_from.iteritems()):
+            for info in infos:
+                version = info.version
                 print "Creating delta:", from_, "->", version
                 sys.stdout.flush()
                 delta_filename = delta_pattern.format(from_, version)
@@ -156,11 +163,21 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
                         qn_tag('sparkle', 'version'): str(version),
                         qn_tag('sparkle', 'deltaFrom'): str(from_),
                     })
+            import shutil
+            if from_ in unzipped_versions and from_ not in required_deltas:
+                try:
+                    shutil.rmtree(unzipped_versions[from_][0])
+                except OSError:
+                    pass
+                del unzipped_versions[from_]
 
     finally:
         import shutil
         for paths in unzipped_versions.values():
-            shutil.rmtree(paths[0])
+            try:
+                shutil.rmtree(paths[0])
+            except OSError:
+                pass
 
     feed_ele = ET.fromstring(ET.tostring(feed_ele.getroot(), encoding='utf-8', method='xml'))
 
