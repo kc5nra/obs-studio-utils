@@ -1,4 +1,4 @@
-obs-studio (${tag}-0ppa${jenkins_build}) trusty; urgency=low
+obs-studio (${tag}.${jenkins_build}-0ppa0) trusty; urgency=low
 
 ${changelog}
 

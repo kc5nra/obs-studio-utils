@@ -24,7 +24,7 @@ def create_ppa(tag, jenkins_build):
     cmd('git -C obs-studio checkout {0}'.format(tag))
     cmd('git -C obs-studio submodule update --init --recursive')
 
-    archive = 'obs-studio_{0}'.format(tag)
+    archive = 'obs-studio_{0}.{1}'.format(tag, jenkins_build)
     cmd('git -C obs-studio archive --format tar.gz --output "../{0}.orig.tar.gz" --prefix {0}/ {1}'.format(archive, tag))
     cmd('tar xvzf {0}.orig.tar.gz'.format(archive))
 
