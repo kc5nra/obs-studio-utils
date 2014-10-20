@@ -19,9 +19,9 @@ def get_tag_info(archive, tag):
 
     return tag_info
 
-def create_ppa(tag, jenkins_build):
+def create_ppa(tag, jenkins_build, version):
 
-    archive = 'obs-studio_{0}'.format(tag)
+    archive = 'obs-studio_{0}'.format(version)
     cmd('git clone https://github.com/jp9000/obs-studio.git {0}'.format(archive))
     cmd('git -C {0} checkout {1}'.format(archive, tag))
     cmd('git -C {0} submodule update --init --recursive'.format(archive))
@@ -29,21 +29,18 @@ def create_ppa(tag, jenkins_build):
     import os
     debian_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'debian')
     args = {
-        'tag': tag,
+        'version': version,
         'jenkins_build': jenkins_build,
         'changelog': '  '+'\n  '.join(get_tag_info(archive, tag)),
         'date': cmd('date -R')
     }
     control_template = get_template(os.path.join(debian_dir, 'changelog'))
-    rules_template = get_template(os.path.join(debian_dir, 'rules'))
 
     import shutil
     shutil.copytree(debian_dir, '{0}/debian'.format(archive))
 
     with open('{0}/debian/changelog'.format(archive), 'w') as f:
         f.write(control_template.substitute(args))
-    with open('{0}/debian/rules'.format(archive), 'w') as f:
-        f.write(rules_template.substitute(args))
 
     cmd('tar cvzf {0}.orig.tar.gz {0}'.format(archive))
 
@@ -54,7 +51,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='obs-studio ubuntu ppa util')
     parser.add_argument('-j', '--jenkins-build', dest='jenkins_build')
     parser.add_argument('-t', '--tag', dest='tag')
+    parser.add_argument('-v', '--version', dest='version')
 
     args = parser.parse_args()
 
-    create_ppa(args.tag, args.jenkins_build)
+    create_ppa(args.tag, args.jenkins_build, args.version)
