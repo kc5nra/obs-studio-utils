@@ -23,8 +23,8 @@ def create_ppa(tag, jenkins_build, ppa):
 
     archive = 'obs-studio_{0}.{1}'.format(tag, jenkins_build)
     cmd('git clone https://github.com/jp9000/obs-studio.git {0}'.format(archive))
-    cmd('git -C obs-studio checkout {0}'.format(tag))
-    cmd('git -C obs-studio submodule update --init --recursive')
+    cmd('git -C {0} checkout {1}'.format(archive, tag))
+    cmd('git -C {0} submodule update --init --recursive'.format(archive))
 
     import os
     debian_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'debian')
