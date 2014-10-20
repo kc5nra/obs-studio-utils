@@ -41,8 +41,8 @@ def create_ppa(tag, jenkins_build):
     import shutil
     shutil.copytree(debian_dir, '{0}/debian'.format(archive))
 
-    with open('{0}/debian/changelog', 'w'.format(archive)) as f:
-        f.write(control_template.substitute(args))
+    with open('{0}/debian/changelog'.format(archive), 'w') as f:
+        f.write(control_template.substitute(args))gi
 
 if __name__ == "__main__":
 
