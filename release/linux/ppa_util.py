@@ -19,9 +19,9 @@ def get_tag_info(archive, tag):
 
     return tag_info
 
-def create_ppa(tag, jenkins_build, ppa):
+def create_ppa(tag, jenkins_build):
 
-    archive = 'obs-studio_{0}.{1}'.format(tag, jenkins_build)
+    archive = 'obs-studio_{0}-{1}'.format(tag, jenkins_build)
     cmd('git clone https://github.com/jp9000/obs-studio.git {0}'.format(archive))
     cmd('git -C {0} checkout {1}'.format(archive, tag))
     cmd('git -C {0} submodule update --init --recursive'.format(archive))
@@ -32,8 +32,7 @@ def create_ppa(tag, jenkins_build, ppa):
         'tag': tag,
         'jenkins_build': jenkins_build,
         'changelog': '  '+'\n  '.join(get_tag_info(archive, tag)),
-        'date': cmd('date -R'),
-        'ppa': ppa
+        'date': cmd('date -R')
     }
     control_template = get_template(os.path.join(debian_dir, 'changelog'))
     rules_template = get_template(os.path.join(debian_dir, 'rules'))
@@ -55,8 +54,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='obs-studio ubuntu ppa util')
     parser.add_argument('-j', '--jenkins-build', dest='jenkins_build')
     parser.add_argument('-t', '--tag', dest='tag')
-    parser.add_argument('-p', '--ppa', dest='ppa', default='0')
 
     args = parser.parse_args()
 
-    create_ppa(args.tag, args.jenkins_build, args.ppa)
+    create_ppa(args.tag, args.jenkins_build)
