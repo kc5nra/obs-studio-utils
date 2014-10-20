@@ -21,7 +21,7 @@ def get_tag_info(archive, tag):
 
 def create_ppa(tag, jenkins_build):
 
-    archive = 'obs-studio_{0}-{1}'.format(tag, jenkins_build)
+    archive = 'obs-studio_{0}'.format(tag)
     cmd('git clone https://github.com/jp9000/obs-studio.git {0}'.format(archive))
     cmd('git -C {0} checkout {1}'.format(archive, tag))
     cmd('git -C {0} submodule update --init --recursive'.format(archive))
