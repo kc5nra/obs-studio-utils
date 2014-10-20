@@ -20,8 +20,10 @@ def get_tag_info(tag):
     return tag_info
 
 def create_ppa(tag, jenkins_build):
-    cmd('git clone https://github.com/jp9000/obs-studio.git')
+    cmd('git clone --depth=1 https://github.com/jp9000/obs-studio.git')
     cmd('git -C obs-studio checkout {0}'.format(tag))
+    cmd('git -C obs-studio submodule update --init --recursive')
+
 
     import os
     debian_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'debian')
@@ -39,7 +41,9 @@ def create_ppa(tag, jenkins_build):
     with open('obs-studio/debian/changelog', 'w') as f:
         f.write(control_template.substitute(args))
 
-    cmd('tar cvzf obs-studio_{0}.orig.tar.gz --exclude ".git*" obs-studio'.format(tag))
+    archive = 'obs-studio_{0}'.format(tag)
+    cmd('git -C obs-studio archive --format tar.gz --output "../{0}.tar.gz" --prefix {0}/ {1}'.format(archive, tag))
+    cmd('tar xvzf {0}.tar.gz'.format(archive))
 
 if __name__ == "__main__":
 
