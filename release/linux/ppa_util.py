@@ -42,7 +42,7 @@ def create_ppa(tag, jenkins_build):
     shutil.copytree(debian_dir, '{0}/debian'.format(archive))
 
     with open('{0}/debian/changelog'.format(archive), 'w') as f:
-        f.write(control_template.substitute(args))gi
+        f.write(control_template.substitute(args))
 
 if __name__ == "__main__":
 
