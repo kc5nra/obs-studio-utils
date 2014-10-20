@@ -24,6 +24,9 @@ def create_ppa(tag, jenkins_build):
     cmd('git -C obs-studio checkout {0}'.format(tag))
     cmd('git -C obs-studio submodule update --init --recursive')
 
+    archive = 'obs-studio_{0}'.format(tag)
+    cmd('git -C obs-studio archive --format tar.gz --output "../{0}.tar.gz" --prefix {0}/ {1}'.format(archive, tag))
+    cmd('tar xvzf {0}.tar.gz'.format(archive))
 
     import os
     debian_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'debian')
@@ -36,14 +39,10 @@ def create_ppa(tag, jenkins_build):
     control_template = get_template(os.path.join(debian_dir, 'changelog'))
 
     import shutil
-    shutil.copytree(debian_dir, 'obs-studio/debian')
+    shutil.copytree(debian_dir, '{0}/debian'.format(archive))
 
-    with open('obs-studio/debian/changelog', 'w') as f:
+    with open('{0}/debian/changelog', 'w'.format(archive)) as f:
         f.write(control_template.substitute(args))
-
-    archive = 'obs-studio_{0}'.format(tag)
-    cmd('git -C obs-studio archive --format tar.gz --output "../{0}.tar.gz" --prefix {0}/ {1}'.format(archive, tag))
-    cmd('tar xvzf {0}.tar.gz'.format(archive))
 
 if __name__ == "__main__":
 
