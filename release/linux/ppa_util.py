@@ -20,7 +20,7 @@ def get_tag_info(tag):
     return tag_info
 
 def create_ppa(tag, jenkins_build):
-    cmd('git clone --depth=1 https://github.com/jp9000/obs-studio.git')
+    cmd('git clone https://github.com/jp9000/obs-studio.git')
     cmd('git -C obs-studio checkout {0}'.format(tag))
     cmd('git -C obs-studio submodule update --init --recursive')
 
