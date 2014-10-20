@@ -38,12 +38,15 @@ def create_ppa(tag, jenkins_build, ppa):
         'ppa': ppa
     }
     control_template = get_template(os.path.join(debian_dir, 'changelog'))
+    rules_template = get_template(os.path.join(debian_dir, 'rules'))
 
     import shutil
     shutil.copytree(debian_dir, '{0}/debian'.format(archive))
 
     with open('{0}/debian/changelog'.format(archive), 'w') as f:
         f.write(control_template.substitute(args))
+    with open('{0}/debian/rules'.format(archive), 'w') as f:
+        f.write(rules_template.substitute(args))
 
 if __name__ == "__main__":
 

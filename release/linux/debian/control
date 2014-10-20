@@ -2,7 +2,7 @@ Source: obs-studio
 Section: video
 Priority: optional
 Maintainer: John Bradley <jrb@turrettech.com>
-Build-Depends: debhelper (>= 8.0.0), cdbs, cmake, build-essential, libpulse-dev, qtbase5-dev, libqt5x11extras5-dev, libavcodec-dev, libavformat-dev, libswscale-dev, libx264-dev, libswresample-dev, libxinerama-dev, libxcomposite-dev, libxrandr-dev, libv4l-dev, libudev-dev, libfreetype6-dev, fontconfig
+Build-Depends: debhelper (>= 8.0.0), cdbs, cmake, build-essential, libpulse-dev, qtbase5-dev, libqt5x11extras5-dev, libavcodec-dev, libavformat-dev, libswscale-dev, libx264-dev, libswresample-dev, libxinerama-dev, libxcomposite-dev, libxrandr-dev, libv4l-dev, libudev-dev, libfreetype6-dev, libfontconfig1-dev
 Homepage: http://obsproject.org
 
 Package: obs-studio
