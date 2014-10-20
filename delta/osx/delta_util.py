@@ -67,7 +67,7 @@ def create_delta_infos(feed_ele):
         if delta_elem is None:
             delta_elem = ET.SubElement(item, 'sparkle:deltas')
         if delta_elem is not None:
-            delta_infos[internal_version].delta_elements.append(delta_elem)
+            delta_infos[internal_version].delta_elements.append((item, delta_elem))
 
             for delta in delta_elem.findall('enclosure'):
                 if delta.get(qn_tag('sparkle', 'version')) != str(internal_version):
@@ -84,17 +84,14 @@ def prune_old_deltas(feed_ele, delta_infos, base_dir):
         if delta_infos[version].delta_elements:
             print "Pruning old deltas for", version
             sys.stdout.flush()
-        for delta_elem in delta_infos[version].delta_elements:
+        for parent, delta_elem in delta_infos[version].delta_elements:
             for elem in delta_elem:
                 path = get_feed_path(elem.get('url'), base_dir)
                 try:
                     os.unlink(path)
                 except OSError:
                     pass
-            try:
-                feed_ele.getroot().remove(delta_elem)
-            except ValueError:
-                pass
+            parent.remove(delta_elem)
 
 def compute_required_deltas(delta_infos):
     previous_versions    = set()
@@ -149,7 +146,7 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
                 delta_filename = delta_pattern.format(from_, version)
                 build_delta(unzip(from_), unzip(version), delta_filename, binary_delta)
                 signature = sign_delta(delta_filename, key)
-                for elem in info.delta_elements:
+                for _, elem in info.delta_elements:
                     ET.SubElement(elem, 'enclosure', {
                         'length': str(os.stat(delta_filename).st_size),
                         'type': 'application/octet-stream',
