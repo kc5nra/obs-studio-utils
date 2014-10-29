@@ -58,7 +58,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='obs-studio ubuntu ppa util')
     parser.add_argument('-j', '--jenkins-build', dest='jenkins_build')
     parser.add_argument('-t', '--tag', dest='tag')
-    parser.add_argument('-s', '--suffix', dest='suffix')
+    parser.add_argument('-s', '--suffix', dest='suffix', default=None)
     args = parser.parse_args()
 
     create_ppa(args.tag, args.jenkins_build, version_suffix=args.suffix)
