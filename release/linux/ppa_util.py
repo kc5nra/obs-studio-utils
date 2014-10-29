@@ -19,6 +19,7 @@ def get_tag_info(archive, tag):
 
     return tag_info
 
+import shutil
 def create_ppa(tag, jenkins_build):
     cmd('git clone https://github.com/jp9000/obs-studio.git')
     cmd('git -C obs-studio checkout {0}'.format(tag))
@@ -27,6 +28,7 @@ def create_ppa(tag, jenkins_build):
     version = re.sub(r'(([0-9]|[.])*)-([0-9]*)-.*', r'\1.\3', cmd('git -C obs-studio describe'))
 
     archive = 'obs-studio_{0}'.format(version)
+
     shutil.move('obs-studio', archive)
 
     import os
@@ -39,7 +41,6 @@ def create_ppa(tag, jenkins_build):
     }
     control_template = get_template(os.path.join(debian_dir, 'changelog'))
 
-    import shutil
     shutil.copytree(debian_dir, '{0}/debian'.format(archive))
 
     with open('{0}/debian/changelog'.format(archive), 'w') as f:
