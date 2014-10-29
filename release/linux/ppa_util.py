@@ -19,12 +19,15 @@ def get_tag_info(archive, tag):
 
     return tag_info
 
-def create_ppa(tag, jenkins_build, version):
+def create_ppa(tag, jenkins_build):
+    cmd('git clone https://github.com/jp9000/obs-studio.git')
+    cmd('git -C obs-studio checkout {1}'.format(tag))
+    cmd('git -C obs-studio submodule update --init --recursive')
+    import re
+    version = re.sub(r'(([0-9]|[.])*)-([0-9]*)-.*', r'\1.\3', cmd('git -C obs-studio describe'))
 
     archive = 'obs-studio_{0}'.format(version)
-    cmd('git clone https://github.com/jp9000/obs-studio.git {0}'.format(archive))
-    cmd('git -C {0} checkout {1}'.format(archive, tag))
-    cmd('git -C {0} submodule update --init --recursive'.format(archive))
+    shutil.move('obs-studio', archive)
 
     import os
     debian_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'debian')
@@ -44,6 +47,7 @@ def create_ppa(tag, jenkins_build, version):
 
     cmd('tar cvzf {0}.orig.tar.gz {0}'.format(archive))
 
+    print version
 
 if __name__ == "__main__":
 
@@ -51,8 +55,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='obs-studio ubuntu ppa util')
     parser.add_argument('-j', '--jenkins-build', dest='jenkins_build')
     parser.add_argument('-t', '--tag', dest='tag')
-    parser.add_argument('-v', '--version', dest='version')
 
     args = parser.parse_args()
 
-    create_ppa(args.tag, args.jenkins_build, args.version)
+    create_ppa(args.tag, args.jenkins_build)
