@@ -20,12 +20,14 @@ def get_tag_info(archive, tag):
     return tag_info
 
 import shutil
-def create_ppa(tag, jenkins_build):
+def create_ppa(tag, jenkins_build, version_suffix=None):
     cmd('git clone https://github.com/jp9000/obs-studio.git')
     cmd('git -C obs-studio checkout {0}'.format(tag))
     cmd('git -C obs-studio submodule update --init --recursive')
     import re
     version = re.sub(r'(([0-9]|[.])*)-([0-9]*)-.*', r'\1.\3', cmd('git -C obs-studio describe'))
+    if version_suffix is not None:
+        version += '.' + version_suffix
 
     archive = 'obs-studio_{0}'.format(version)
 
@@ -56,7 +58,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='obs-studio ubuntu ppa util')
     parser.add_argument('-j', '--jenkins-build', dest='jenkins_build')
     parser.add_argument('-t', '--tag', dest='tag')
-
+    parser.add_argument('-s', '--suffix', dest='suffix')
     args = parser.parse_args()
 
-    create_ppa(args.tag, args.jenkins_build)
+    create_ppa(args.tag, args.jenkins_build, version_suffix=args.suffix)
