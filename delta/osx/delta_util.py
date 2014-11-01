@@ -58,7 +58,8 @@ def create_delta_infos(feed_ele):
         internal_version = LooseVersion(en_ele.get(qn_tag('sparkle', 'version')))
         user_version = LooseVersion(en_ele.get(qn_tag('sparkle', 'shortVersionString')))
 
-        if item.get(qn_tag('ce', 'deltaCandidate')) == 'false':
+        delta_candidate = item.get(qn_tag('ce', 'deltaCandidate'))
+        if delta_candidate is not None and delta_candidate.text == 'false':
             continue
 
         if internal_version not in delta_infos:
