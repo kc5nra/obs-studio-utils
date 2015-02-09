@@ -20,7 +20,8 @@ def get_tag_info(archive, tag):
     return tag_info
 
 import shutil
-def create_ppa(tag, jenkins_build, version_suffix=None):
+def create_ppa(tag, jenkins_build, distro, version_suffix, update):
+    
     cmd('git clone https://github.com/jp9000/obs-studio.git')
     cmd('git -C obs-studio checkout {0}'.format(tag))
     cmd('git -C obs-studio submodule update --init --recursive')
@@ -31,7 +32,10 @@ def create_ppa(tag, jenkins_build, version_suffix=None):
 
     archive = 'obs-studio_{0}'.format(version)
 
-    shutil.move('obs-studio', archive)
+    if update:
+        shutil.rmtree('obs-studio')
+    else:
+        shutil.move('obs-studio', archive)
 
     import os
     debian_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'debian')
@@ -39,16 +43,21 @@ def create_ppa(tag, jenkins_build, version_suffix=None):
         'version': version,
         'jenkins_build': jenkins_build,
         'changelog': '  '+'\n  '.join(get_tag_info(archive, tag)),
-        'date': cmd('date -R')
+        'date': cmd('date -R'),
+        'distro': distro,
     }
     control_template = get_template(os.path.join(debian_dir, 'changelog'))
+
+    if update:
+        shutil.rmtree('{0}/debian'.format(archive))
 
     shutil.copytree(debian_dir, '{0}/debian'.format(archive))
 
     with open('{0}/debian/changelog'.format(archive), 'w') as f:
         f.write(control_template.substitute(args))
 
-    cmd('tar cvzf {0}.orig.tar.gz {0}'.format(archive))
+    if not update:
+        cmd('tar cvzf {0}.orig.tar.gz {0}'.format(archive))
 
     print version
 
@@ -59,6 +68,8 @@ if __name__ == "__main__":
     parser.add_argument('-j', '--jenkins-build', dest='jenkins_build')
     parser.add_argument('-t', '--tag', dest='tag')
     parser.add_argument('-s', '--suffix', dest='suffix', default=None)
+    parser.add_argument('-d', '--distro', dest='distro', default=None)
+    parser.add_argument('-u', '--update', dest='update', required=False, action='store_true', default=False)
     args = parser.parse_args()
 
-    create_ppa(args.tag, args.jenkins_build, version_suffix=args.suffix)
+    create_ppa(args.tag, args.jenkins_build, args.distro, args.suffix, args.update)

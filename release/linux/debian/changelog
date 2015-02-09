@@ -1,4 +1,4 @@
-obs-studio (${version}-${jenkins_build}) trusty; urgency=low
+obs-studio (${version}-${jenkins_build}~${distro}) ${distro}; urgency=low
 
 ${changelog}
 
