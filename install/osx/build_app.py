@@ -97,11 +97,7 @@ while inspect:
 			universal_newlines=True)
  
 	if "QtCore" in path:
-		plugin = path.replace("lib/QtCore.framework/Versions/5/QtCore",
-				"plugins/platforms/libqcocoa.dylib")
-		plugin = path.replace("Library/Frameworks/QtCore.framework/Versions/5/QtCore",
-				"share/qt5/plugins/platforms/libqcocoa.dylib")
-		add(plugin, "True", "platforms/libqcocoa.dylib")
+		add_plugins(path, "platforms")
 		add_plugins(path, "imageformats")
 		add_plugins(path, "accessible")
  
