@@ -2,7 +2,7 @@ Source: obs-studio
 Section: video
 Priority: optional
 Maintainer: John Bradley <jrb@turrettech.com>
-Build-Depends: debhelper (>= 9), cdbs, cmake, libx11-dev, libgl-dev, libpulse-dev, libxcomposite-dev, libxinerama-dev, libv4l-dev, libudev-dev, libfreetype6-dev, libfontconfig-dev, qtbase5-dev, libqt5x11extras5-dev, libx264-dev, libxcb-xinerama0-dev, libxcb-shm0-dev, libavformat-ffmpeg-dev, libswscale-ffmpeg-dev, libswresample-ffmpeg-dev, libavdevice-ffmpeg-dev, libavfilter-ffmpeg-dev, libfdk-aac-dev, libjack-jackd2-dev 
+Build-Depends: debhelper (>= 9), cdbs, cmake, git, libx11-dev, libgl-dev, libpulse-dev, libxcomposite-dev, libxinerama-dev, libv4l-dev, libudev-dev, libfreetype6-dev, libfontconfig-dev, qtbase5-dev, libqt5x11extras5-dev, libx264-dev, libxcb-xinerama0-dev, libxcb-shm0-dev, libavformat-ffmpeg-dev, libswscale-ffmpeg-dev, libswresample-ffmpeg-dev, libavdevice-ffmpeg-dev, libavfilter-ffmpeg-dev, libfdk-aac-dev, libjack-jackd2-dev 
 Homepage: http://obsproject.org
 
 Package: obs-studio
