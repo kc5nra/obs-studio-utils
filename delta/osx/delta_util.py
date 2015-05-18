@@ -20,7 +20,8 @@ def get_feed_path(url, base_dir):
 def load_feed(filename):
     return ET.parse(filename)
 
-def sign_delta(filename, key):
+def sign_delta(filename, key, delta_tool):
+
     from shlex import split as shplit
     from subprocess import PIPE
 
@@ -112,7 +113,7 @@ def compute_required_deltas(delta_infos):
 
 def build_delta(source, target, diff, binary_delta):
     from subprocess import call
-    call([binary_delta, "create", source, target, diff])
+    call([binary_delta, "create", source, target, diff, "--cache", "cache", "--verbose"])
 
 def create_temp_app(zipfile):
     from subprocess import call
@@ -132,7 +133,7 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
     prune_old_deltas(feed_ele, delta_infos, base_dir)
 
     zip_pattern   = path.join(path.dirname(feed_path), "{0}-app.zip")
-    delta_pattern = path.join(path.dirname(feed_path), "{0}-{1}.delta")
+    delta_pattern = path.join(path.dirname(feed_path), "{0}-{1}.sporkel_delta")
 
     unzipped_versions = dict()
     def unzip(version):
@@ -156,7 +157,7 @@ def create_deltas(feed_path, base_dir, key, binary_delta):
                 sys.stdout.flush()
                 delta_filename = delta_pattern.format(from_, version)
                 build_delta(unzip(from_), unzip(version), delta_filename, binary_delta)
-                signature = sign_delta(delta_filename, key)
+                signature = sign_delta(delta_filename, key, binary_delta)
                 for _, elem in info.delta_elements:
                     ET.SubElement(elem, 'enclosure', {
                         'length': str(os.stat(delta_filename).st_size),
