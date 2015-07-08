@@ -160,7 +160,7 @@ copy(run_path, "tmp/Contents/MacOS/%s"%info["CFBundleExecutable"])
 copy(args.public_key, "tmp/Contents/Resources")
 
 if args.sparkle is not None:
-    copytree(args.sparkle, "tmp/Contents/Frameworks/Sparkle.framework")
+    copytree(args.sparkle, "tmp/Contents/Frameworks/Sparkle.framework", symlinks=True)
 
 prefix = "tmp/Contents/Resources/"
 sparkle_path = '@loader_path/{0}/Frameworks/Sparkle.framework/Versions/A/Sparkle'
