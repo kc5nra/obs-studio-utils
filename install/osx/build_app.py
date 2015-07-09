@@ -1,8 +1,6 @@
 #!/usr/bin/env python3.3
  
-candidate_paths = "bin obs-plugins".split()
-candidate_suffixes = "dylib so".split()
- 
+candidate_paths = "bin obs-plugins data".split()
  
 plist_path = "../cmake/osxbundle/Info.plist"
 icon_path = "../cmake/osxbundle/obs.icns"
@@ -24,7 +22,7 @@ from glob import glob
 from subprocess import check_output, call
 from collections import namedtuple
 from shutil import copy, copytree, rmtree
-from os import makedirs, rename
+from os import makedirs, rename, walk, path as ospath
 import plistlib
 
 import argparse
@@ -64,15 +62,22 @@ def add(name, external=False, copy_as=None):
 		return
 	inspect.append(t)
 	inspected.add(t)
- 
-add("bin/obs")
- 
+
+
 for i in candidate_paths:
-	for j in candidate_suffixes:
-		print(build_path+"/"+i+"/*."+j)
-		for k in glob(build_path+"/"+i+"/*."+j):
-			rel_path = k[len(build_path)+1:]
-			print(repr(k), repr(rel_path))
+	print("Checking " + i)
+	for root, dirs, files in walk(build_path+"/"+i):
+		for file_ in files:
+			path = root + "/" + file_
+			try:
+				out = check_output("{0}otool -L '{1}'".format(args.prefix, path), shell=True,
+						universal_newlines=True)
+				if "is not an object file" in out:
+					continue
+			except:
+				pass
+			rel_path = path[len(build_path)+1:]
+			print(repr(path), repr(rel_path))
 			add(rel_path)
  
 def add_plugins(path, replace):
