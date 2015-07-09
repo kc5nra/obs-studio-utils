@@ -162,7 +162,10 @@ copy(icon_path, icon_file)
 plistlib.writePlist(info, "tmp/Contents/Info.plist")
 makedirs("tmp/Contents/MacOS")
 copy(run_path, "tmp/Contents/MacOS/%s"%info["CFBundleExecutable"])
-copy(args.public_key, "tmp/Contents/Resources")
+try:
+	copy(args.public_key, "tmp/Contents/Resources")
+except:
+	pass
 
 if args.sparkle is not None:
     copytree(args.sparkle, "tmp/Contents/Frameworks/Sparkle.framework", symlinks=True)
