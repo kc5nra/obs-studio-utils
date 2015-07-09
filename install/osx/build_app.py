@@ -196,6 +196,9 @@ for path, external, copy_as in inspected:
 	else:
 		filename = path[len(build_path)+1:]
 		id_ = "-id '@rpath/../%s'"%filename
+		if not filename.startswith("bin"):
+			print(filename)
+			rpath = "-add_rpath '@loader_path/{}/'".format(ospath.relpath("bin/", ospath.dirname(filename)))
 		filename = prefix + filename
  
 	cmd = "{0}install_name_tool {1} {2} {3} '{4}'".format(args.prefix, changes, id_, rpath, filename)
