@@ -199,7 +199,10 @@ Section "un.obs-studio Program Files"
 	${endif}
 
 	; Clean up OBS Multiplatform
-	RMDir /r "$INSTDIR"
+	RMDir /r "$INSTDIR\bin"
+	RMDir /r "$INSTDIR\data"
+	RMDir /r "$INSTDIR\obs-plugins"
+	RMDir "$INSTDIR"
 
 	; Remove remaining directories
 	RMDir "$SMPROGRAMS\OBS Multiplatform"
