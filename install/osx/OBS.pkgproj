@@ -491,7 +491,7 @@
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>VERSION</key>
-				<string>0.5.1.4796.0</string>
+				<string>1.0</string>
 			</dict>
 			<key>UUID</key>
 			<string>19CCE3F2-8911-4364-B673-8B5BC3ABD4DA</string>
@@ -522,7 +522,7 @@
 				<key>LOCATION</key>
 				<integer>0</integer>
 				<key>NAME</key>
-				<string>obs-browser</string>
+				<string>obs-browser-install</string>
 			</dict>
 			<key>PATH</key>
 			<dict>
@@ -534,7 +534,7 @@
 			<key>TYPE</key>
 			<integer>1</integer>
 			<key>UUID</key>
-			<string>0CD9C67E-4D14-4794-9930-019925513B1C</string>
+			<string>E2AA282C-ABB8-4BB2-84F3-A5B61AA12CBF</string>
 		</dict>
 	</array>
 	<key>PROJECT</key>
@@ -627,6 +627,27 @@
 								<integer>0</integer>
 								<key>UUID</key>
 								<string>BBDE08F6-D7EE-47CB-881F-7F208B3A604B</string>
+							</dict>
+							<dict>
+								<key>DESCRIPTION</key>
+								<array/>
+								<key>OPTIONS</key>
+								<dict>
+									<key>HIDDEN</key>
+									<false/>
+									<key>STATE</key>
+									<integer>1</integer>
+								</dict>
+								<key>PACKAGE_UUID</key>
+								<string>E2AA282C-ABB8-4BB2-84F3-A5B61AA12CBF</string>
+								<key>TITLE</key>
+								<array/>
+								<key>TOOLTIP</key>
+								<array/>
+								<key>TYPE</key>
+								<integer>0</integer>
+								<key>UUID</key>
+								<string>C4BDBC22-1B94-48D5-AFAE-C1B20CB28727</string>
 							</dict>
 						</array>
 						<key>REMOVED</key>
