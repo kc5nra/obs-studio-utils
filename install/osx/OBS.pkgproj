@@ -516,6 +516,26 @@
 			<key>UUID</key>
 			<string>0CC9C67E-4D14-4794-9930-019925513B1C</string>
 		</dict>
+		<dict>
+			<key>PACKAGE_SETTINGS</key>
+			<dict>
+				<key>LOCATION</key>
+				<integer>0</integer>
+				<key>NAME</key>
+				<string>obs-browser</string>
+			</dict>
+			<key>PATH</key>
+			<dict>
+				<key>PATH</key>
+				<string>obs-browser-install.pkg</string>
+				<key>PATH_TYPE</key>
+				<integer>3</integer>
+			</dict>
+			<key>TYPE</key>
+			<integer>1</integer>
+			<key>UUID</key>
+			<string>0CD9C67E-4D14-4794-9930-019925513B1C</string>
+		</dict>
 	</array>
 	<key>PROJECT</key>
 	<dict>
